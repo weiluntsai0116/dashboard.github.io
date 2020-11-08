@@ -84,4 +84,5 @@ def read_dash(readit_n_clicks,
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=6156)
+    # Beanstalk expects it to be running on 8000.
+    app.run_server(debug=True, port=8000)
