@@ -7,6 +7,7 @@ from dash.dependencies import Input, Output, State
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+application = app.server
 
 colors = {
     'background': '#FFFFFF',
@@ -84,5 +85,4 @@ def read_dash(readit_n_clicks,
 
 
 if __name__ == '__main__':
-    # Beanstalk expects it to be running on 8000.
-    app.run_server(debug=True, port=8000)
+    application.run(debug=True, port=8080)
