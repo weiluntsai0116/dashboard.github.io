@@ -99,7 +99,7 @@ app.layout = html.Div([
     html.Div(id='delete-output'),
     html.Hr(),
     html.Div(id='dash-output'),
-], style={'columnCount': 3})
+], style={'columnCount': 3, "height": "100vh"})
 
 
 @app.callback([Output('create-output', 'children'),
@@ -137,7 +137,7 @@ def info_disp(create_n_clicks, readit_n_clicks,
 def read_dash(readit_n_clicks,
               user_id, signal_id):
     iframe = html.Iframe(src=f'https://weiluntsai0116.github.io/dashboard.github.io/{user_id}_{signal_id}.html',
-                         height=500, width=1000)
+                         height=500, width=800)
     return iframe
 
 
