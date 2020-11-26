@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-# import os
-# import pymysql
-# import pandas as pd
-# from sqlalchemy import create_engine
-# from pandas import DataFrame
-# from datetime import datetime
+import os
+import pymysql
+import pandas as pd
+from sqlalchemy import create_engine
+from pandas import DataFrame
+from datetime import datetime
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -12,54 +12,54 @@ from dash.dependencies import Input, Output, State
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-# ## get date and time
-# now = datetime.now()
-# dt_string = now.strftime("%Y-%m-%d %H:%M:%S")
-# #print("date and time =", dt_string)
-#
-# ## DB manipulation
-# c_info = {
-#     "host": os.getenv('USER_SERVICE_HOST'),
-#     "user": os.getenv('USER_SERVICE_USER'),
-#     "password": os.getenv("USER_SERVICE_PASSWORD"),
-#     "port": int(os.getenv("USER_SERVICE_PORT")),
-#     "cursorclass": pymysql.cursors.DictCursor,
-# }
-#
-#
-# def get_connection():
-#     conn = pymysql.connect(**c_info)
-#     return conn
-#
-#
-# def read_signals(user_id):
-#     conn = get_connection()
-#     df = pd.read_sql(
-#         f"select * "
-#         f"from signals.signals "
-#         f"where user_id = {user_id}",
-#         conn
-#     )
-#     return df
-#
-#
-# def write_signals():
-#     conn = create_engine(
-#         f'mysql+pymysql://{c_info["user"]}:{c_info["password"]}@{c_info["host"]}:{c_info["port"]}/signals?charset=utf8')
-#
-#     signals = {
-#         'signal_id': ['signal_id_001'],
-#         'signal_name': ['signal_name_001'],
-#         'signal_description': ['signal_description_001'],
-#         'user_id': ['user_id_001']
-#     }
-#     df = DataFrame(signals, columns=['signal_id', 'signal_name', 'signal_description', 'user_id'])
-#     df.to_sql(name='signals', con=conn, if_exists='replace', index=False)
-#
-#
-# # df = read_signals(0)
-# # print(df)
-# #write_signals()
+## get date and time
+now = datetime.now()
+dt_string = now.strftime("%Y-%m-%d %H:%M:%S")
+#print("date and time =", dt_string)
+
+## DB manipulation
+c_info = {
+    "host": os.getenv('USER_SERVICE_HOST'),
+    "user": os.getenv('USER_SERVICE_USER'),
+    "password": os.getenv("USER_SERVICE_PASSWORD"),
+    "port": int(os.getenv("USER_SERVICE_PORT")),
+    "cursorclass": pymysql.cursors.DictCursor,
+}
+
+
+def get_connection():
+    conn = pymysql.connect(**c_info)
+    return conn
+
+
+def read_signals(user_id):
+    conn = get_connection()
+    df = pd.read_sql(
+        f"select * "
+        f"from signals.signals "
+        f"where user_id = {user_id}",
+        conn
+    )
+    return df
+
+
+def write_signals():
+    conn = create_engine(
+        f'mysql+pymysql://{c_info["user"]}:{c_info["password"]}@{c_info["host"]}:{c_info["port"]}/signals?charset=utf8')
+
+    signals = {
+        'signal_id': ['signal_id_001'],
+        'signal_name': ['signal_name_001'],
+        'signal_description': ['signal_description_001'],
+        'user_id': ['user_id_001']
+    }
+    df = DataFrame(signals, columns=['signal_id', 'signal_name', 'signal_description', 'user_id'])
+    df.to_sql(name='signals', con=conn, if_exists='replace', index=False)
+
+
+# df = read_signals(0)
+# print(df)
+#write_signals()
 
 ## dash app
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
