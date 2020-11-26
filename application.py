@@ -32,18 +32,21 @@ app.layout = html.Div([
               dcc.Input(id='user_id-state', type='text', value='user0')]),
     html.Div(["Signal ID: ",
               dcc.Input(id='signal_id-state', type='text', value='signal0')]),
+    html.Div(["Description: ",
+              dcc.Textarea(id='testarea-state', value='comments', style={'width': '50%', 'height': 50})]),
     html.Br(),
     html.Button(id='create-button1-state', n_clicks=0, children='Create'),
     html.Button(id='readit-button2-state', n_clicks=0, children='Read'),
     html.Button(id='modify-button3-state', n_clicks=0, children='Modify'),
     html.Button(id='delete-button4-state', n_clicks=0, children='Delete'),
+    html.Br(),
+    html.Div(id='userid-output-state5'),
+    html.Div(id='sigid-output-state6'),
+    html.Div(id='desciption-output-state7', style={'whiteSpace': 'pre-line'}),
     html.Div(id='create-output-state1'),
     html.Div(id='readit-output-state2'),
     html.Div(id='modify-output-state3'),
     html.Div(id='delete-output-state4'),
-    html.Br(),
-    html.Div(id='userid-output-state5'),
-    html.Div(id='sigid-output-state6'),
     html.Hr(),
     html.Div(id='dash-output-state1'),
 ])
@@ -54,23 +57,26 @@ app.layout = html.Div([
                Output('modify-output-state3', 'children'),
                Output('delete-output-state4', 'children'),
                Output('userid-output-state5', 'children'),
-               Output('sigid-output-state6', 'children')],
+               Output('sigid-output-state6', 'children'),
+               Output('desciption-output-state7', 'children')],
               [Input('create-button1-state', 'n_clicks'),
                Input('readit-button2-state', 'n_clicks'),
                Input('modify-button3-state', 'n_clicks'),
                Input('delete-button4-state', 'n_clicks')],
               [State('user_id-state', 'value'),
-               State('signal_id-state', 'value')])
+               State('signal_id-state', 'value'),
+               State('testarea-state', 'value')])
 def info_disp(create_n_clicks, readit_n_clicks,
                   modify_n_clicks, delete_n_clicks,
-                  input1, input2):
-    create    = u'''Create: {} times'''.format(create_n_clicks)
-    read      = u'''Read  : {} times'''.format(readit_n_clicks)
-    modify    = u'''Modify: {} times'''.format(modify_n_clicks)
-    delete    = u'''Delete: {} times'''.format(delete_n_clicks)
-    user_id   = u'''Use ID   : {}'''.format(input1)
-    signal_id = u'''Signal ID: {}'''.format(input2)
-    return create, read, modify, delete, user_id, signal_id
+                  input1, input2, input3):
+    create      = u'''Create: {} times'''.format(create_n_clicks)
+    read        = u'''Read  : {} times'''.format(readit_n_clicks)
+    modify      = u'''Modify: {} times'''.format(modify_n_clicks)
+    delete      = u'''Delete: {} times'''.format(delete_n_clicks)
+    user_id     = u'''Use ID   : {}'''.format(input1)
+    signal_id   = u'''Signal ID: {}'''.format(input2)
+    description = u'''Description: {}'''.format(input3)
+    return create, read, modify, delete, user_id, signal_id, description
 
 @app.callback(
               Output('dash-output-state1', 'children'),
@@ -80,9 +86,31 @@ def info_disp(create_n_clicks, readit_n_clicks,
 def read_dash(readit_n_clicks,
               input1, input2):
     iframe = html.Iframe(src=f'https://weiluntsai0116.github.io/dashboard.github.io/{input1}_{input2}.html',
-                         height=500, width=1500)
+                         height=500, width=1000)
     return iframe
 
+'''
+@app.callback()
+def create_dash()
+    return 
+'''
+
+'''
+@app.callback()
+def modify_dash()
+    return 
+'''
+
+'''
+@app.callback()
+def delete_dash()
+    return 
+'''
+
+'''
+def write_db
+    return
+'''
 
 if __name__ == '__main__':
     application.run(debug=True, port=8080)
