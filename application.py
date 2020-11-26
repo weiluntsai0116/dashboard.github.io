@@ -51,7 +51,6 @@ app.layout = html.Div([
     html.Div(id='dash-output-state1'),
 ])
 
-
 @app.callback([Output('create-output-state1', 'children'),
                Output('readit-output-state2', 'children'),
                Output('modify-output-state3', 'children'),
