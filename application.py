@@ -12,12 +12,12 @@ from dash.dependencies import Input, Output, State
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-## get date and time
+# get date and time
 now = datetime.now()
 dt_string = now.strftime("%Y-%m-%d %H:%M:%S")
-#print("date and time =", dt_string)
+# print("date and time =", dt_string)
 
-## DB manipulation
+# DB manipulation
 c_info = {
     "host": os.getenv('USER_SERVICE_HOST'),
     "user": os.getenv('USER_SERVICE_USER'),
@@ -59,9 +59,9 @@ def write_signals():
 
 # df = read_signals(0)
 # print(df)
-#write_signals()
+# write_signals()
 
-## dash app
+# dash app
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 application = app.server
 
