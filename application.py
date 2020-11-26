@@ -2,6 +2,7 @@
 import os
 import pymysql
 import pandas as pd
+import mysql.connector
 from sqlalchemy import create_engine
 from pandas import DataFrame
 from datetime import datetime
@@ -48,18 +49,58 @@ def write_signals():
         f'mysql+pymysql://{c_info["user"]}:{c_info["password"]}@{c_info["host"]}:{c_info["port"]}/signals?charset=utf8')
 
     signals = {
-        'signal_id': ['signal_id_001'],
-        'signal_name': ['signal_name_001'],
-        'signal_description': ['signal_description_001'],
-        'user_id': ['user_id_001']
+        'signal_id': ['signal_id_003'],
+        'signal_name': ['signal_name_003'],
+        'signal_description': ['signal_description_003'],
+        'user_id': ['user_id_003']
     }
     df = DataFrame(signals, columns=['signal_id', 'signal_name', 'signal_description', 'user_id'])
-    df.to_sql(name='signals', con=conn, if_exists='replace', index=False)
+    df.to_sql(name='signals', con=conn, if_exists='append', index=False)
 
 
-# df = read_signals(0)
-# print(df)
-# write_signals()
+def build_connection():
+    mydb = mysql.connector.connect(
+        host=c_info['host'],
+        user=c_info['user'],
+        password=c_info['password'],
+        database="signals"
+    )
+    mycursor = mydb.cursor()
+    return (mydb, mycursor)
+
+
+def insertTo_table(mydb, mycursor):
+    sql = "INSERT INTO signals.signals (signal_id, signal_name, signal_description, user_id) VALUES (%s, %s, %s, %s)"
+    val = ("signal_id_004", "signal_name_004", "signal_description_004", "user_id_004")
+    mycursor.execute(sql, val)
+    mydb.commit()
+    # print(mycursor.rowcount, "record inserted.")
+
+
+def update_table(mydb, mycursor):
+    sql = "UPDATE signals.signals SET signal_description = %s where user_id = %s;"
+    val = ("modified 2!", "user_id_001")
+    mycursor.execute(sql, val)
+    mydb.commit()
+    # print(mycursor.rowcount, "record updated")
+
+
+def deleteFrom_table(mydb, mycursor):
+    sql = "DELETE FROM signals.signals WHERE user_id = %s and signal_id = %s"
+    val = ("user_id_002", "signal_id_002")
+    mycursor.execute(sql, val)
+    mydb.commit()
+    # print(mycursor.rowcount, "record deleted")
+
+
+def selectFrom_table(mydb, mycursor):
+    sql = "SELECT * FROM signals.signals where user_id = %s and signal_id = %s"
+    val = ("user_id_003", "signal_id_003")
+    mycursor.execute(sql, val)
+    myresult = mycursor.fetchall()
+    for x in myresult:
+        print(x)
+
 
 # dash app
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
@@ -144,19 +185,19 @@ def read_dash(readit_n_clicks,
 '''
 @app.callback()
 def create_dash()
-    return 
+    return
 '''
 
 '''
 @app.callback()
 def modify_dash()
-    return 
+    return
 '''
 
 '''
 @app.callback()
 def delete_dash()
-    return 
+    return
 '''
 
 if __name__ == '__main__':
