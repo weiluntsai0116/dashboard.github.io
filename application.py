@@ -33,7 +33,7 @@ app.layout = html.Div([
     html.Div(["Signal ID: ",
               dcc.Input(id='signal_id-state', type='text', value='signal0')]),
     html.Br(),
-    html.Button(id='create-button1-state', n_clicks=0, children='Create-pipeline-test'),
+    html.Button(id='create-button1-state', n_clicks=0, children='Create'),
     html.Button(id='readit-button2-state', n_clicks=0, children='Read'),
     html.Button(id='modify-button3-state', n_clicks=0, children='Modify'),
     html.Button(id='delete-button4-state', n_clicks=0, children='Delete'),
