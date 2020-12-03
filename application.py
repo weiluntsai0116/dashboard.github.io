@@ -144,11 +144,12 @@ app.layout = html.Div([
     html.Br(),
     dbc.Row([
         dbc.Col(html.Div(["User ID:   ", dcc.Input(id='user_id-state', placeholder="0", type='text', value='')]),
-            width=2),
+                width=2),
         dbc.Col(html.Div(["Signal ID: ", dcc.Input(id='signal_id-state', placeholder="0", type='text', value='')]),
-            width=2),
-        dbc.Col(html.Div(["Signal name: ", dcc.Input(id='signal_name-state', placeholder="SignalName", type='text', value='')]),
-            width=2)
+                width=2),
+        dbc.Col(html.Div(
+            ["Signal name: ", dcc.Input(id='signal_name-state', placeholder="SignalName", type='text', value='')]),
+                width=2)
     ], justify="center"),
 
     html.Br(),
@@ -199,19 +200,25 @@ app.layout = html.Div([
         dbc.Col(html.Div(id='delete-output'), width=2)
     ], justify="center"),
 
-    # dbc.Modal(
-    #     [
-    #         dbc.ModalHeader("Warning!"),
-    #         dbc.ModalBody("Not yet completed!"),
-    #         dbc.ModalFooter(
-    #             dbc.Button("Close", id="close", className="ml-auto")
-    #         ),
-    #     ],
-    #     id="modal",
-    # ),
     dcc.ConfirmDialog(
         id='delete-confirm',
         message='Danger danger! Your just press the \'Delete\' button. \nAre you sure you want to continue?',
+    ),
+
+    dbc.Button("Modal with scrollable body", id="open"),
+    dbc.Modal(
+        [
+            dbc.ModalHeader("Error"),
+            dbc.ModalBody("Test result: Fail."),
+            dbc.ModalBody("Please check with the tech support team."),
+            dbc.ModalFooter(
+                dbc.Button(
+                    "Close", id="close", className="ml-auto"
+                )
+            ),
+        ],
+        id="modal",
+        scrollable=True,
     ),
 
     html.Br(),
@@ -221,6 +228,20 @@ app.layout = html.Div([
 ])
 
 
+@app.callback(
+    Output("modal", "is_open"),
+    [
+        Input("open", "n_clicks"),
+        Input("close", "n_clicks"),
+    ],
+    [State("modal", "is_open")],
+)
+def toggle_modal(n1, n2, is_open):
+    if n1 or n2:
+        return not is_open
+    return is_open
+
+
 @app.callback(Output('delete-confirm', 'displayed'),
               Input('delete-button', 'n_clicks'))
 def display_confirm(n_clicks):
@@ -228,20 +249,6 @@ def display_confirm(n_clicks):
         return True
     return False
 
-
-# @app.callback(
-#     Output("modal", "is_open"),
-#     [Input('create-button', 'n_clicks'),
-#      Input('modify-button', 'n_clicks'),
-#      Input("delete-button", "n_clicks"),
-#      Input("close", "n_clicks")],
-#     [State("modal", "is_open")],
-# )
-# def toggle_modal(create_n_clicks, modify_n_clicks,
-#                  delete_n_clicks, close_modal, is_open):
-#     if delete_n_clicks or modify_n_clicks or delete_n_clicks or close_modal:
-#         return not is_open
-#     return is_open
 
 @app.callback([Output('userid-output', 'children'),
                Output('signalid-output', 'children'),
@@ -268,12 +275,18 @@ def info_disp(delete_n_clicks, modify_n_clicks, create_n_clicks, readit_n_clicks
      State('signal_id-state', 'value'),
      State('description-state', 'value')])
 def create_dash(create_n_clicks, user_id, signal_id, signal_description):
-    if user_id != "" and signal_id != "":
+    test_result = True
+    debug_msg = "<debug msg>"
+    if user_id != "" and signal_id != "" and test_result:
         insertTo_table(user_id, signal_id, signal_description, mydb, mycursor)
         # todo: 1. use regex will be better
         # todo: 2. should be implemented in def insertTo_table()
         # todo: 3. should use INSERT IGNORE INTO
-    create = u'''Create: {} times'''.format(create_n_clicks)
+        create = 'Create result: Pass!'  # u'''Create: {} times'''.format(create_n_clicks)
+    elif create_n_clicks != 0:
+        create = u'''Create result: Fail! Please find the debug message below: {}'''.format(debug_msg)
+    else:
+        create = 'Create: 0 times'
     return create
 
 
@@ -284,9 +297,15 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description):
      State('signal_id-state', 'value'),
      State('description-state', 'value')])
 def modify_dash(modify_n_clicks, user_id, signal_id, signal_description):
-    if user_id != "" and signal_id != "":  # todo: as mentioned in create_dash
+    test_result = True
+    debug_msg = "<debug msg>"
+    if user_id != "" and signal_id != "" and test_result:  # todo: as mentioned in create_dash
         update_table(user_id, signal_id, signal_description, mydb, mycursor)
-    modify = u'''Modify: {} times'''.format(modify_n_clicks)
+        modify = 'Modify result: Pass!'  # u'''Modify: {} times'''.format(modify_n_clicks)
+    elif modify_n_clicks != 0:
+        modify = u'''Modify result: Fail! Please find the debug message below: {}'''.format(debug_msg)
+    else:
+        modify = 'Modify: 0 times'
     return modify
 
 
@@ -302,8 +321,9 @@ def read_dash(readit_n_clicks,
     if user_id == "" and signal_id == "":
         user_id = "user0"
         signal_id = "signal0"
-    iframe = html.Iframe(src=f'https://weiluntsai0116.github.io/dashboard.github.io/user{user_id}_signal{signal_id}.html',
-                         height=500, width=1000)
+    iframe = html.Iframe(
+        src=f'https://weiluntsai0116.github.io/dashboard.github.io/user{user_id}_signal{signal_id}.html',
+        height=500, width=1000)
     return read, iframe
 
 
