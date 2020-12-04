@@ -1,14 +1,20 @@
-### dashboard.github.io
+## dashboard.github.io
 
+### App location:
 http://dashboard-env-1.eba-szsfmavw.us-east-2.elasticbeanstalk.com/
 
+### Content to be refine: deadline: 12/E
 1. Tech stacks:
     - Dash (Plotly)
     - AWS CodePipeline
     - AWS Elastic Beanstalk
     - AWS RDS (MySQL)
-2. User guide:
-    - operations:
+2. Instructions:
+    - User's operation:
+        1. write a python dash code containing their dash figure.
+        2. test their python dash code using the test procedure we provided.
+        3. generate an HTML file by running their python program that inserted with the pio.write command we provided.
+    - Dashboard's operations:
         1. Create:
             - download template dashcode
             - A signal_id will be given
@@ -20,7 +26,8 @@ http://dashboard-env-1.eba-szsfmavw.us-east-2.elasticbeanstalk.com/
             - update signal info in db
         4. Delete:
             - delete dashcode and signal in db
-
+    - Dashboard receives a GitHub link containing the HTML file.
+    - The uploading procedure renames the HTML file, uploads it to our GitHub, and returns the new link to Dashboard
 ---
 Notes:
 1. Issues when deploying the dashboard on Elastic Beanstalk:

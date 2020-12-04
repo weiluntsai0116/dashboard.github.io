@@ -190,6 +190,7 @@ app.layout = html.Div([
         dbc.Col(html.Div(id='userid-output'), width=2),
         dbc.Col(html.Div(id='signalid-output'), width=2),
         dbc.Col(html.Div(id='description-output', style={'whiteSpace': 'pre-line'}), width=2),
+        dbc.Col(html.Div(id='github-output', style={'whiteSpace': 'pre-line'}), width=2),
     ], justify="center"),
 
     html.Br(),
@@ -252,20 +253,23 @@ def display_confirm(n_clicks):
 
 @app.callback([Output('userid-output', 'children'),
                Output('signalid-output', 'children'),
-               Output('description-output', 'children')],
+               Output('description-output', 'children'),
+               Output('github-output', 'children')],
               [Input('delete-confirm', 'submit_n_clicks'),
                Input('modify-button', 'n_clicks'),
                Input('create-button', 'n_clicks'),
                Input('readit-button', 'n_clicks')],
               [State('user_id-state', 'value'),
                State('signal_id-state', 'value'),
-               State('description-state', 'value')])
+               State('description-state', 'value'),
+               State('github-state', 'value')])
 def info_disp(delete_n_clicks, modify_n_clicks, create_n_clicks, readit_n_clicks,
-              user_id, signal_id, description):
+              user_id, signal_id, description, github):
     user_id = u'''User ID   : {}'''.format(user_id)
     signal_id = u'''Signal ID: {}'''.format(signal_id)
     description = u'''Description: {}'''.format(description)
-    return user_id, signal_id, description
+    github = u'''Github link: {}'''.format(github)
+    return user_id, signal_id, description, github
 
 
 @app.callback(
@@ -273,8 +277,9 @@ def info_disp(delete_n_clicks, modify_n_clicks, create_n_clicks, readit_n_clicks
     [Input('create-button', 'n_clicks')],
     [State('user_id-state', 'value'),
      State('signal_id-state', 'value'),
-     State('description-state', 'value')])
-def create_dash(create_n_clicks, user_id, signal_id, signal_description):
+     State('description-state', 'value'),
+     State('github-state', 'value')])
+def create_dash(create_n_clicks, user_id, signal_id, signal_description, github):
     test_result = True
     debug_msg = "<debug msg>"
     if user_id != "" and signal_id != "" and test_result:
@@ -282,6 +287,21 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description):
         # todo: 1. use regex will be better
         # todo: 2. should be implemented in def insertTo_table()
         # todo: 3. should use INSERT IGNORE INTO
+        # -----------------------------------------------------------------------------
+        # todo for Eric: Please insert your function call here. parameter you may need: user_id, signal_id, github.
+        #                1. User's github link: {github}
+        #                2. The naming format of the new html file should be:
+        #                https://weiluntsai0116.github.io/dashboard.github.io/user{user_id}_signal{signal_id}.html
+        #                3. Please test if it works by:
+        #                   0) imagine you're an user.
+        #                     - Use the dashcode template (.py) you wrote
+        #                     - Generate .html
+        #                     - Upload .html you wrote to your github.
+        #                   1) create a new signal: fill out User ID, Signal ID, Github link, and press the Create button
+        #                   2) wait for a while (DB update, html upload)
+        #                   3) read back the signal: fill out the same User ID, Signal ID, and press the Read button
+        #                   4) If the figure you expected appear below, then you complete the integration
+        # -----------------------------------------------------------------------------
         create = 'Create result: Pass!'  # u'''Create: {} times'''.format(create_n_clicks)
     elif create_n_clicks != 0:
         create = u'''Create result: Fail! Please find the debug message below: {}'''.format(debug_msg)
@@ -295,12 +315,28 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description):
     [Input('modify-button', 'n_clicks')],
     [State('user_id-state', 'value'),
      State('signal_id-state', 'value'),
-     State('description-state', 'value')])
-def modify_dash(modify_n_clicks, user_id, signal_id, signal_description):
+     State('description-state', 'value'),
+     State('github-state', 'value')])
+def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github):
     test_result = True
     debug_msg = "<debug msg>"
     if user_id != "" and signal_id != "" and test_result:  # todo: as mentioned in create_dash
         update_table(user_id, signal_id, signal_description, mydb, mycursor)
+        # -----------------------------------------------------------------------------
+        # todo for Eric: Please insert your function call here. parameter you may need: user_id, signal_id, github.
+        #                1. User's github link: {github}
+        #                2. The naming format of the new html file should be:
+        #                https://weiluntsai0116.github.io/dashboard.github.io/user{user_id}_signal{signal_id}.html
+        #                3. Please test if it works by:
+        #                   0) imagine you're an user.
+        #                     - Use the dashcode template (.py) you wrote
+        #                     - Generate .html
+        #                     - Upload .html you wrote to your github.
+        #                   1) create a new signal: fill out User ID, Signal ID, Github link, and press the Create button
+        #                   2) wait for a while (DB update, html upload)
+        #                   3) read back the signal: fill out the same User ID, Signal ID, and press the Read button
+        #                   4) If the figure you expected appear below, then you complete the integration
+        # -----------------------------------------------------------------------------
         modify = 'Modify result: Pass!'  # u'''Modify: {} times'''.format(modify_n_clicks)
     elif modify_n_clicks != 0:
         modify = u'''Modify result: Fail! Please find the debug message below: {}'''.format(debug_msg)
