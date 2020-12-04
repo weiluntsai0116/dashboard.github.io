@@ -282,7 +282,7 @@ def info_disp(delete_n_clicks, modify_n_clicks, create_n_clicks, readit_n_clicks
 def create_dash(create_n_clicks, user_id, signal_id, signal_description, github):
     test_result = True
     debug_msg = "<debug msg>"
-    if user_id != "" and signal_id != "" and test_result:
+    if user_id != "" and signal_id != "" and github != "" and test_result:
         insertTo_table(user_id, signal_id, signal_description, mydb, mycursor)
         # todo: 1. use regex will be better
         # todo: 2. should be implemented in def insertTo_table()
@@ -305,7 +305,7 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
         # -----------------------------------------------------------------------------
         create = 'Create result: Pass!'  # u'''Create: {} times'''.format(create_n_clicks)
     elif create_n_clicks != 0:
-        create = u'''Create result: Fail! Please find the debug message below: {}'''.format(debug_msg)
+        create = u'''Create result: Fail! Lack of User ID, Signal ID, or GitHub link'''
     else:
         create = 'Create: 0 times'
     return create
@@ -321,7 +321,7 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
 def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github):
     test_result = True
     debug_msg = "<debug msg>"
-    if user_id != "" and signal_id != "" and test_result:  # todo: as mentioned in create_dash
+    if user_id != "" and signal_id != "" and github != "" and test_result:  # todo: as mentioned in create_dash
         update_table(user_id, signal_id, signal_description, mydb, mycursor)
         # -----------------------------------------------------------------------------
         # todo for Eric: Please insert your function call here. parameter you may need: user_id, signal_id, github.
@@ -341,7 +341,7 @@ def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github)
         # -----------------------------------------------------------------------------
         modify = 'Modify result: Pass!'  # u'''Modify: {} times'''.format(modify_n_clicks)
     elif modify_n_clicks != 0:
-        modify = u'''Modify result: Fail! Please find the debug message below: {}'''.format(debug_msg)
+        modify = u'''Modify result: Fail! Lack of User ID, Signal ID, or GitHub link'''
     else:
         modify = 'Modify: 0 times'
     return modify
@@ -355,10 +355,12 @@ def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github)
      State('signal_id-state', 'value')])
 def read_dash(readit_n_clicks,
               user_id, signal_id):
-    read = u'''Read  : {} times'''.format(readit_n_clicks)
-    if user_id == "" and signal_id == "":
-        user_id = "user0"
-        signal_id = "signal0"
+    if user_id != "" and signal_id != "":
+        read = u'''Read result : Pass!'''.format(readit_n_clicks)
+    elif readit_n_clicks != 0:
+        read = u'''Modify result: Fail! Lack of User ID and Signal ID'''
+    else:
+        read = 'Modify: 0 times'
     iframe = html.Iframe(
         src=f'https://weiluntsai0116.github.io/dashboard.github.io/user{user_id}_signal{signal_id}.html',
         height=500, width=1000)
@@ -374,7 +376,11 @@ def read_dash(readit_n_clicks,
 def delete_dash(delete_n_clicks, user_id, signal_id, signal_description):
     if user_id != "" and signal_id != "":  # todo: as mentioned in create_dash
         deleteFrom_table(user_id, signal_id, mydb, mycursor)
-    delete = u'''Delete: {} times'''.format(delete_n_clicks)
+        delete = u'''Delete result: done'''.format(delete_n_clicks)
+    elif delete_n_clicks is not None:
+        delete = u'''Delete result: Fail! Lack of User ID and Signal ID'''
+    else:
+        delete = 'Delete: 0 times'
     return delete
 
 
