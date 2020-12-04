@@ -304,24 +304,12 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
         #                4. deployment error: 99% from the requirements.txt
         # -----------------------------------------------------------------------------
 
-        # 1. download from github link
-        cp = None
-        cp = cmd.run(f"wget {github}", check=True, shell=True)
-        print(cp)
+        # 1. download from github link and modify the filename as we need
         try:
-            cp = cmd.run(f"wget {github}", check=True, shell=True)
+            cp = cmd.run(f"wget -O user{user_id}_signal{signal_id}.html {github}", check=True, shell=True)
             print(cp)
         except:
-            print(cp)
             print("Download file failed.")
-
-        # 2. Modify name to be user{user_id}_signal{signal_id}.html
-        user_fn = github.split('/')[-1]
-        try:
-            cp = cmd.run(f"mv {user_fn} user{user_id}_signal{signal_id}.html", check=True, shell=True)
-            print(cp)
-        except:
-            print("Change filename failed.")
 
         # 3. upload to github
         try:
@@ -377,9 +365,9 @@ def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github)
         #                4. deployment error: 99% from the requirements.txt
         # -----------------------------------------------------------------------------
 
-        # 1. download from github link
+        # 1. download from github link and modify the filename as we need
         try:
-            cp = cmd.run(f"wget {github}", check=True, shell=True)
+            cp = cmd.run(f"wget -O user{user_id}_signal{signal_id}.html {github}", check=True, shell=True)
             print(cp)
         except:
             print("Download file failed.")
