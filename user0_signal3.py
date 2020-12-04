@@ -18,14 +18,20 @@ fig = px.scatter(df, x="gdp per capita", y="life expectancy",
                  size="population", color="continent", hover_name="country",
                  log_x=True, size_max=60)
 
-app.layout = html.Div([
-    dcc.Graph(
-        id='life-exp-vs-gdp',
-        figure=fig
-    )
-])
+fig2 = px.scatter(df, x="gdp per capita", y="life expectancy",
+                 size="population", color="continent", hover_name="country",
+                 log_x=True, size_max=60)
 
-pio.write_html(fig, file='user0_signal0.html', auto_open=False)
+
+# app.layout = html.Div([
+#     dcc.Graph(
+#         id='life-exp-vs-gdp',
+#         figure=fig
+#     )
+# ])
+
 
 if __name__ == '__main__':
+    pio.write_html(fig, file='user0_signal3_test001-1.html', auto_open=False)
+    #pio.write_html(fig2, file='user0_signal3_test001-2.html', auto_open=False)
     app.run_server(debug=True)

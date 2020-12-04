@@ -1,7 +1,7 @@
 import subprocess as cmd
 
 
-def process(fn):
+def process(filename, user_signal):
 
     # try:
     #     cp = cmd.run(f"pytest -s ./tests/test_dash.py --app {fn}", check=True, shell=True)
@@ -12,6 +12,7 @@ def process(fn):
     #     # return False
 
     try:
+        cp = cmd.run(f"move {filename} {user_signal}", check = True, shell = True)
         cp = cmd.run("git add .", check=True, shell=True)
         print("Git add: ")
         print(cp)
@@ -31,4 +32,4 @@ def process(fn):
 
 
 if __name__ == "__main__":
-    process("user0_signal3")
+    process("user0_signal3.html", "modified_name.html")
