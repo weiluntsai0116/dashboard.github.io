@@ -11,7 +11,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
-
+import subprocess as cmd
 
 # Date and time
 def get_time():
@@ -303,6 +303,43 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
         #                   4) If the figure you expected appear below, then you complete the integration
         #                4. deployment error: 99% from the requirements.txt
         # -----------------------------------------------------------------------------
+
+        # 1. download from github link
+        cp = None
+        cp = cmd.run(f"wget {github}", check=True, shell=True)
+        print(cp)
+        try:
+            cp = cmd.run(f"wget {github}", check=True, shell=True)
+            print(cp)
+        except:
+            print(cp)
+            print("Download file failed.")
+
+        # 2. Modify name to be user{user_id}_signal{signal_id}.html
+        user_fn = github.split('/')[-1]
+        try:
+            cp = cmd.run(f"mv {user_fn} user{user_id}_signal{signal_id}.html", check=True, shell=True)
+            print(cp)
+        except:
+            print("Change filename failed.")
+
+        # 3. upload to github
+        try:
+            cp = cmd.run("git add .", check=True, shell=True)
+            print("Git add: ")
+            print(cp)
+            cp = cmd.run(f"git commit -m 'upload user file'", check=True, shell=True)
+            print("Git commit: ")
+            print(cp)
+
+            cp = cmd.run("git push -u origin main -f", check=True, shell=True)
+            print("Git push: ")
+            print(cp)
+
+        except:
+            print("Didn't upload to github. ")
+            # return False
+
         create = 'Create result: Pass!'  # u'''Create: {} times'''.format(create_n_clicks)
     elif create_n_clicks != 0:
         create = u'''Create result: Fail! Lack of User ID, Signal ID, or GitHub link'''
@@ -339,6 +376,39 @@ def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github)
         #                   4) If the figure you expected appear below, then you complete the integration
         #                4. deployment error: 99% from the requirements.txt
         # -----------------------------------------------------------------------------
+
+        # 1. download from github link
+        try:
+            cp = cmd.run(f"wget {github}", check=True, shell=True)
+            print(cp)
+        except:
+            print("Download file failed.")
+
+        # 2. Modify name to be user{user_id}_signal{signal_id}.html
+        user_fn = github.split('/')[-1]
+        try:
+            cp = cmd.run(f"mv {user_fn} user{user_id}_signal{signal_id}.html", check=True, shell=True)
+            print(cp)
+        except:
+            print("Change filename failed.")
+
+        # 3. upload to github
+        try:
+            cp = cmd.run("git add .", check=True, shell=True)
+            print("Git add: ")
+            print(cp)
+            cp = cmd.run(f"git commit -m 'update user file'", check=True, shell=True)
+            print("Git commit: ")
+            print(cp)
+
+            cp = cmd.run("git push -u origin main -f", check=True, shell=True)
+            print("Git push: ")
+            print(cp)
+
+        except:
+            print("Didn't upload to github. ")
+            # return False
+
         modify = 'Modify result: Pass!'  # u'''Modify: {} times'''.format(modify_n_clicks)
     elif modify_n_clicks != 0:
         modify = u'''Modify result: Fail! Lack of User ID, Signal ID, or GitHub link'''
