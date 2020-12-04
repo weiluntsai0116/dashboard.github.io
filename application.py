@@ -301,6 +301,7 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
         #                   2) wait for a while (DB update, html upload)
         #                   3) read back the signal: fill out the same User ID, Signal ID, and press the Read button
         #                   4) If the figure you expected appear below, then you complete the integration
+        #                4. deployment error: 99% from the requirements.txt
         # -----------------------------------------------------------------------------
         create = 'Create result: Pass!'  # u'''Create: {} times'''.format(create_n_clicks)
     elif create_n_clicks != 0:
@@ -336,6 +337,7 @@ def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github)
         #                   2) wait for a while (DB update, html upload)
         #                   3) read back the signal: fill out the same User ID, Signal ID, and press the Read button
         #                   4) If the figure you expected appear below, then you complete the integration
+        #                4. deployment error: 99% from the requirements.txt
         # -----------------------------------------------------------------------------
         modify = 'Modify result: Pass!'  # u'''Modify: {} times'''.format(modify_n_clicks)
     elif modify_n_clicks != 0:
