@@ -304,9 +304,27 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
         #                4. deployment error: 99% from the requirements.txt
         # -----------------------------------------------------------------------------
 
+        create = 'Create result: Pass!'
+
+        #0. Process link to be raw data link
+
+        contents_list = github.split('/')
+        raw_link = None
+        if "github.com" not in contents_list or 'blob' not in contents_list:
+            print("The provided github link is invalid. ")
+            create = "The provided github link is invalid. "
+        else:
+            github_idx = contents_list.index("github.com")
+            raw_lists = contents_list[github_idx + 1:]
+            raw_lists.remove('blob')
+
+            raw_lists.insert(0, "https://raw.githubusercontent.com")
+            raw_link = "/".join(raw_lists)
+            print(raw_link)
+
         # 1. download from github link and modify the filename as we need
         try:
-            cp = cmd.run(f"wget -O user{user_id}_signal{signal_id}.html {github}", check=True, shell=True)
+            cp = cmd.run(f"wget -O user{user_id}_signal{signal_id}.html {raw_link}", check=True, shell=True)
             print(cp)
         except:
             print("Download file failed.")
@@ -328,7 +346,7 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
             print("Didn't upload to github. ")
             # return False
 
-        create = 'Create result: Pass!'  # u'''Create: {} times'''.format(create_n_clicks)
+         # u'''Create: {} times'''.format(create_n_clicks)
     elif create_n_clicks != 0:
         create = u'''Create result: Fail! Lack of User ID, Signal ID, or GitHub link'''
     else:
