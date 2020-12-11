@@ -13,6 +13,7 @@ import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 import subprocess as cmd
 
+
 # Date and time
 def get_time():
     now = datetime.now()
@@ -76,6 +77,16 @@ def build_connection():
     return (mydb, mycursor)
 
 
+def isExist(user_id, signal_id, mydb, mycursor):
+    sql = "SELECT * FROM signals.signals where user_id = %s and signal_id = %s"
+    val = (user_id, signal_id)
+    mycursor.execute(sql, val)
+    myresult = mycursor.fetchall()
+    print(len(myresult))
+    if len(myresult) != 0:
+        return True
+    return False
+
 def insertTo_table(user_id, signal_id, signal_description, mydb, mycursor):
     sql = "INSERT INTO signals.signals (signal_id, signal_name, signal_description, user_id, datetime) \
     VALUES (%s, %s, %s, %s, %s)"
@@ -106,18 +117,9 @@ def deleteFrom_table(user_id, signal_id, mydb, mycursor):
     print(mycursor.rowcount, "record deleted")
 
 
-def selectFrom_table(user_id, signal_id, mydb, mycursor):
-    sql = "SELECT * FROM signals.signals where user_id = %s and signal_id = %s"
-    val = (user_id, signal_id)
-    mycursor.execute(sql, val)
-    myresult = mycursor.fetchall()
-    for x in myresult:
-        print(x)
-
-
 (mydb, mycursor) = build_connection()
 # insertTo_table('user51', 'signal0', 'signal_description', mydb, mycursor)
-# selectFrom_table('user2', 'signal0', mydb, mycursor)
+# selectFrom_table('7', '2', mydb, mycursor)
 # update_table('user0', 'signal0', 'description', mydb, mycursor) # if it fails, run "SET SQL_SAFE_UPDATES=0;" in mysql workbench
 # deleteFrom_table('user5', 'signal0', mydb, mycursor)
 
@@ -149,7 +151,7 @@ app.layout = html.Div([
                 width=2),
         dbc.Col(html.Div(
             ["Signal name: ", dcc.Input(id='signal_name-state', placeholder="SignalName", type='text', value='')]),
-                width=2)
+            width=2)
     ], justify="center"),
 
     html.Br(),
@@ -282,7 +284,10 @@ def info_disp(delete_n_clicks, modify_n_clicks, create_n_clicks, readit_n_clicks
 def create_dash(create_n_clicks, user_id, signal_id, signal_description, github):
     test_result = True
     debug_msg = "<debug msg>"
-    if user_id != "" and signal_id != "" and github != "" and test_result:
+    duplicate = isExist(user_id, signal_id, mydb, mycursor)
+    if duplicate:
+        create = u'''Create result: Fail! User ID or Signal ID duplicate'''
+    elif user_id != "" and signal_id != "" and github != "" and test_result:
         insertTo_table(user_id, signal_id, signal_description, mydb, mycursor)
         # todo: 1. use regex will be better
         # todo: 2. should be implemented in def insertTo_table()
@@ -306,7 +311,7 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
 
         create = 'Create result: Pass!'
 
-        #0. Process link to be raw data link
+        # 0. Process link to be raw data link
 
         contents_list = github.split('/')
         raw_link = None
@@ -346,7 +351,7 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
             print("Didn't upload to github. ")
             # return False
 
-         # u'''Create: {} times'''.format(create_n_clicks)
+        # u'''Create: {} times'''.format(create_n_clicks)
     elif create_n_clicks != 0:
         create = u'''Create result: Fail! Lack of User ID, Signal ID, or GitHub link'''
     else:
@@ -364,6 +369,9 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
 def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github):
     test_result = True
     debug_msg = "<debug msg>"
+    exist = isExist(user_id, signal_id, mydb, mycursor)
+    # if not exist:
+    #     create = u'''Modify result: Fail! User ID or Signal ID not exist'''
     if user_id != "" and signal_id != "" and github != "" and test_result:  # todo: as mentioned in create_dash
         update_table(user_id, signal_id, signal_description, mydb, mycursor)
         # -----------------------------------------------------------------------------
