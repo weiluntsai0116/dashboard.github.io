@@ -289,7 +289,6 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
     elif isExist(user_id, signal_id, mydb, mycursor) and create_n_clicks != 0:  # todo: as mentioned in create_dash
         create = u'''Create result: Fail! (User ID, Signal ID) is 'duplicate'''
     elif create_n_clicks != 0:
-        insertTo_table(user_id, signal_id, signal_description, mydb, mycursor)
         # todo: 1. use regex will be better
         # todo: 2. should be implemented in def insertTo_table()
         # todo: 3. should use INSERT IGNORE INTO
@@ -310,8 +309,6 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
         #                4. deployment error: 99% from the requirements.txt
         # -----------------------------------------------------------------------------
 
-        create = 'Create result: Pass!'
-
         # 0. Process link to be raw data link
 
         contents_list = github.split('/')
@@ -327,6 +324,8 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
             raw_lists.insert(0, "https://raw.githubusercontent.com")
             raw_link = "/".join(raw_lists)
             print(raw_link)
+            insertTo_table(user_id, signal_id, signal_description, mydb, mycursor)
+            create = 'Create result: Pass!'
 
         # 1. download from github link and modify the filename as we need
         try:
