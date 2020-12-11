@@ -461,11 +461,11 @@ def read_dash(readit_n_clicks,
      State('description-state', 'value')])
 def delete_dash(delete_n_clicks, user_id, signal_id, signal_description):
 
-    if (user_id == "" or signal_id == "") and delete_n_clicks != 0:
+    if (user_id == "" or signal_id == "") and delete_n_clicks is not None:
         delete = u'''Delete result: Fail! Lack of User ID or Signal ID'''
-    elif not isExist(user_id, signal_id, mydb, mycursor) and delete_n_clicks != 0:  # todo: as mentioned in create_dash
+    elif not isExist(user_id, signal_id, mydb, mycursor) and delete_n_clicks is not None:  # todo: as mentioned in create_dash
         delete = u'''Delete result: Fail! (User ID, Signal ID) is not exist'''
-    elif delete_n_clicks != 0:
+    elif delete_n_clicks is not None:
         delete = u'''Delete result: Pass!'''
     else:
         delete = 'Delete: 0 times'
