@@ -284,7 +284,11 @@ def info_disp(delete_n_clicks, modify_n_clicks, create_n_clicks, readit_n_clicks
 def create_dash(create_n_clicks, user_id, signal_id, signal_description, github):
     test_result = True
     debug_msg = "<debug msg>"
-    if user_id != "" and signal_id != "" and github != "" and test_result:
+    if (user_id == "" or signal_id == "") and create_n_clicks != 0:
+        create = u'''Create result: Fail! Lack of User ID, Signal ID, or GitHub link'''
+    elif isExist(user_id, signal_id, mydb, mycursor) and create_n_clicks != 0:  # todo: as mentioned in create_dash
+        create = u'''Create result: Fail! (User ID, Signal ID) is 'duplicate'''
+    elif create_n_clicks != 0:
         insertTo_table(user_id, signal_id, signal_description, mydb, mycursor)
         # todo: 1. use regex will be better
         # todo: 2. should be implemented in def insertTo_table()
@@ -366,7 +370,11 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
 def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github):
     test_result = True
     debug_msg = "<debug msg>"
-    if user_id != "" and signal_id != "" and github != "" and test_result:  # todo: as mentioned in create_dash
+    if (user_id == "" or signal_id == "") and modify_n_clicks != 0:
+        modify = u'''Modify result: Fail! Lack of User ID, Signal ID, or GitHub link'''
+    # elif not isExist(user_id, signal_id, mydb, mycursor) and modify_n_clicks != 0:  # todo: as mentioned in create_dash
+    #     modify = u'''Modify result: Fail! (User ID, Signal ID) is not exist'''
+    elif modify_n_clicks != 0:
         update_table(user_id, signal_id, signal_description, mydb, mycursor)
         # -----------------------------------------------------------------------------
         # todo for Eric: Please insert your function call here. parameter you may need: user_id, signal_id, github.
@@ -418,8 +426,6 @@ def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github)
             # return False
 
         modify = 'Modify result: Pass!'  # u'''Modify: {} times'''.format(modify_n_clicks)
-    elif modify_n_clicks != 0:
-        modify = u'''Modify result: Fail! Lack of User ID, Signal ID, or GitHub link'''
     else:
         modify = 'Modify: 0 times'
     return modify
