@@ -446,7 +446,7 @@ def read_dash(readit_n_clicks,
     elif readit_n_clicks != 0:
         read = u'''Read result: Pass!'''
     else:
-        read = 'Modify: 0 times'
+        read = 'Read: 0 times'
     iframe = html.Iframe(
         src=f'https://weiluntsai0116.github.io/dashboard.github.io/user{user_id}_signal{signal_id}.html',
         height=500, width=1000)
