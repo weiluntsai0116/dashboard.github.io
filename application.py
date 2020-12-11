@@ -439,10 +439,13 @@ def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github)
      State('signal_id-state', 'value')])
 def read_dash(readit_n_clicks,
               user_id, signal_id):
-    if user_id != "" and signal_id != "":
-        read = u'''Read result : Pass!'''.format(readit_n_clicks)
+
+    if (user_id == "" or signal_id == "") and readit_n_clicks != 0:
+        read = u'''Read result: Fail! Lack of User ID or Signal ID'''
+    elif not isExist(user_id, signal_id, mydb, mycursor) and readit_n_clicks != 0:  # todo: as mentioned in create_dash
+        read = u'''Read result: Fail! (User ID, Signal ID) is not exist'''
     elif readit_n_clicks != 0:
-        read = u'''Modify result: Fail! Lack of User ID and Signal ID'''
+        read = u'''Read result: Pass!'''
     else:
         read = 'Modify: 0 times'
     iframe = html.Iframe(
