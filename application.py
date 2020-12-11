@@ -284,10 +284,7 @@ def info_disp(delete_n_clicks, modify_n_clicks, create_n_clicks, readit_n_clicks
 def create_dash(create_n_clicks, user_id, signal_id, signal_description, github):
     test_result = True
     debug_msg = "<debug msg>"
-    duplicate = isExist(user_id, signal_id, mydb, mycursor)
-    if duplicate:
-        create = u'''Create result: Fail! User ID or Signal ID duplicate'''
-    elif user_id != "" and signal_id != "" and github != "" and test_result:
+    if user_id != "" and signal_id != "" and github != "" and test_result:
         insertTo_table(user_id, signal_id, signal_description, mydb, mycursor)
         # todo: 1. use regex will be better
         # todo: 2. should be implemented in def insertTo_table()
@@ -369,9 +366,6 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
 def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github):
     test_result = True
     debug_msg = "<debug msg>"
-    exist = isExist(user_id, signal_id, mydb, mycursor)
-    # if not exist:
-    #     create = u'''Modify result: Fail! User ID or Signal ID not exist'''
     if user_id != "" and signal_id != "" and github != "" and test_result:  # todo: as mentioned in create_dash
         update_table(user_id, signal_id, signal_description, mydb, mycursor)
         # -----------------------------------------------------------------------------
