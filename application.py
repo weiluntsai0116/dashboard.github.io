@@ -372,8 +372,8 @@ def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github)
     debug_msg = "<debug msg>"
     if (user_id == "" or signal_id == "") and modify_n_clicks != 0:
         modify = u'''Modify result: Fail! Lack of User ID, Signal ID, or GitHub link'''
-    # elif not isExist(user_id, signal_id, mydb, mycursor) and modify_n_clicks != 0:  # todo: as mentioned in create_dash
-    #     modify = u'''Modify result: Fail! (User ID, Signal ID) is not exist'''
+    elif not isExist(user_id, signal_id, mydb, mycursor) and modify_n_clicks != 0:  # todo: as mentioned in create_dash
+        modify = u'''Modify result: Fail! (User ID, Signal ID) is not exist'''
     elif modify_n_clicks != 0:
         update_table(user_id, signal_id, signal_description, mydb, mycursor)
         # -----------------------------------------------------------------------------
