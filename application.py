@@ -12,8 +12,8 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
-# import jwt
-# from cryptography.fernet import Fernet, InvalidToken  # new
+import jwt
+from cryptography.fernet import Fernet, InvalidToken  # new
 import apps.db_access as db_access
 import apps.test_and_upload as app_upload
 import apps.security as security
