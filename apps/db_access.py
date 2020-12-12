@@ -49,7 +49,7 @@ def is_exist(user_id, signal_id):
     return False
 
 
-def insertTo_table(user_id, signal_id, signal_description):
+def insert_signal(user_id, signal_id, signal_description):
     sql = "INSERT INTO signals.signals (signal_id, signal_name, signal_description, user_id, datetime) \
     VALUES (%s, %s, %s, %s, %s)"
     dt_string = get_time()
@@ -62,7 +62,7 @@ def insertTo_table(user_id, signal_id, signal_description):
     print(mycursor.rowcount, "record inserted.")
 
 
-def update_table(user_id, signal_id, signal_description):
+def update_signal(user_id, signal_id, signal_description):
     sql = "UPDATE signals.signals SET signal_description = %s, datetime = %s where user_id = %s and signal_id =%s"
     dt_string = get_time()
     val = (signal_description, dt_string, user_id, signal_id)
@@ -74,7 +74,7 @@ def update_table(user_id, signal_id, signal_description):
     print(mycursor.rowcount, "record updated")
 
 
-def deleteFrom_table(user_id, signal_id):
+def delete_signal(user_id, signal_id):
     sql = "DELETE FROM signals.signals WHERE user_id = %s and signal_id = %s"
     val = (user_id, signal_id)
     (mydb, mycursor) = build_connection()

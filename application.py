@@ -209,7 +209,7 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
             raw_lists.insert(0, "https://raw.githubusercontent.com")
             raw_link = "/".join(raw_lists)
             print(raw_link)
-            db_access.insertTo_table(user_id, signal_id, signal_description)
+            db_access.insert_signal(user_id, signal_id, signal_description)
             create = 'Create result: Pass!'
 
         # 1. download from github link and modify the filename as we need
@@ -257,7 +257,7 @@ def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github)
     elif not db_access.is_exist(user_id, signal_id) and modify_n_clicks != 0:  # todo: as mentioned in create_dash
         modify = u'''Modify result: Fail! (User ID, Signal ID) is not exist'''
     elif modify_n_clicks != 0:
-        db_access.update_table(user_id, signal_id, signal_description)
+        db_access.update_signal(user_id, signal_id, signal_description)
         # -----------------------------------------------------------------------------
         # todo for Eric: Please insert your function call here. parameter you may need: user_id, signal_id, github.
         #                1. User's github link: {github}
@@ -347,7 +347,7 @@ def delete_dash(delete_n_clicks, user_id, signal_id, signal_description):
     elif not db_access.is_exist(user_id, signal_id) and delete_n_clicks is not None:  # todo: as mentioned in create_dash
         delete = u'''Delete result: Fail! (User ID, Signal ID) is not exist'''
     elif delete_n_clicks is not None:
-        db_access.deleteFrom_table(user_id, signal_id)
+        db_access.delete_signal(user_id, signal_id)
         delete = u'''Delete result: Pass!'''
     else:
         delete = 'Delete: 0 times'
