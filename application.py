@@ -123,14 +123,14 @@ app.layout = html.Div([
         html.Div(id='dash-output')
     ], justify="center"),
 
-    # session div. meant to be hide
-    html.Div(id='session'),
-    html.Div(id='out'),
+    # session div for global vars. meant to be hidden.
+    html.Div(id='user_id'),
+    html.Div(id='test_out'),
 ])
 
 
 @app.callback(Output('error_redirect_page', 'children'),
-              Output('session', 'children'),
+              Output('user_id', 'children'),
               [Input('dashboard_service_url', 'href')])
 def check_token(pathname):
     # dev_mode:
@@ -182,8 +182,8 @@ def check_token(pathname):
         return dcc.Location(href=redirect_page, id="any"), "" # something unexpected happened
 
 
-@app.callback(Output('out', 'children'),
-              Input('session', 'children'))
+@app.callback(Output('test_out', 'children'),
+              Input('user_id', 'children'))
 def get_user_id(user_id):
     print("user_id = ", user_id)
     return user_id
