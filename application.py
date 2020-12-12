@@ -133,45 +133,53 @@ app.layout = html.Div([
               Output('session', 'children'),
               [Input('dashboard_service_url', 'href')])
 def check_token(pathname):
-    # Format: http://xxx/xxxx?token=iamatoken
-    path_info = pathname.split("?token=")
-    # Does not contain token
-    print(pathname)
-    if len(path_info) != 2:
-        return dcc.Location(href=redirect_page, id="any"), ""
+    # dev_mode:
+    # True: always authorized; user_id = 0
+    # False: token is needed; user_id = 2;
+    dev_mode = True
 
-    signed_token = path_info[1]
-    f = Fernet(security.fernet_secret)
-    try:
-        jwt_token = f.decrypt(signed_token.encode("utf-8")).decode("utf-8")
-    except (InvalidToken, TypeError):
-        print("exception 1: ", InvalidToken, "; fernet_secret: ", security.fernet_secret)
-        return dcc.Location(href=redirect_page, id="any"), ""
-    # print("jwt_token = ", jwt_token)
-    # flask.session['token'] = jwt_token
-    # print("session token = ", flask.session['token'])
+    if dev_mode:
+        return '', 0
+    else:
+        # Format: http://xxx/xxxx?token=iamatoken
+        path_info = pathname.split("?token=")
+        # Does not contain token
+        print(pathname)
+        if len(path_info) != 2:
+            return dcc.Location(href=redirect_page, id="any"), ""
 
-    if jwt_token.startswith("Bearer "):
-        jwt_token = jwt_token[7:]
-    try:
-        payload = jwt.decode(jwt_token, security.jwt_secret,
-                             algorithms=[security.jwt_algo])
-        # payload = {
-        #     "user_id": user["user_id"],
-        #     "role": user["role"],
-        #     "email": user["email"],
-        #     "exp": datetime.utcnow() + timedelta(seconds=jwt_exp_delta_sec)
-        # }
+        signed_token = path_info[1]
+        f = Fernet(security.fernet_secret)
+        try:
+            jwt_token = f.decrypt(signed_token.encode("utf-8")).decode("utf-8")
+        except (InvalidToken, TypeError):
+            print("exception 1: ", InvalidToken, "; fernet_secret: ", security.fernet_secret)
+            return dcc.Location(href=redirect_page, id="any"), ""
+        # print("jwt_token = ", jwt_token)
+        # flask.session['token'] = jwt_token
+        # print("session token = ", flask.session['token'])
 
-        if payload["role"] not in {"support", "ip"}:
-            print("exception 2")
-            return dcc.Location(href=redirect_page, id="any"), ""  # ["Permission Denied", 403] # ["Not authenticated", 400]
-        else:
-            return "", payload['user_id'] # everything's good
-    except (jwt.DecodeError, jwt.ExpiredSignatureError):
-        print("exception 3")
-        return dcc.Location(href=redirect_page, id="any"), ""  # ["Token is invalid", 401]
-    return dcc.Location(href=redirect_page, id="any"), "" # something unexpected happened
+        if jwt_token.startswith("Bearer "):
+            jwt_token = jwt_token[7:]
+        try:
+            payload = jwt.decode(jwt_token, security.jwt_secret,
+                                 algorithms=[security.jwt_algo])
+            # payload = {
+            #     "user_id": user["user_id"],
+            #     "role": user["role"],
+            #     "email": user["email"],
+            #     "exp": datetime.utcnow() + timedelta(seconds=jwt_exp_delta_sec)
+            # }
+
+            if payload["role"] not in {"support", "ip"}:
+                print("exception 2")
+                return dcc.Location(href=redirect_page, id="any"), ""  # ["Permission Denied", 403] # ["Not authenticated", 400]
+            else:
+                return "", payload['user_id'] # everything's good
+        except (jwt.DecodeError, jwt.ExpiredSignatureError):
+            print("exception 3")
+            return dcc.Location(href=redirect_page, id="any"), ""  # ["Token is invalid", 401]
+        return dcc.Location(href=redirect_page, id="any"), "" # something unexpected happened
 
 
 @app.callback(Output('out', 'children'),
