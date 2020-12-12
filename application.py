@@ -11,7 +11,6 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
-import subprocess as cmd
 import apps.db_access as db_access
 import apps.test_and_upload as app_upload
 

@@ -1,3 +1,5 @@
+import subprocess as cmd
+
 def test_and_upload_for_create(create_n_clicks, user_id, signal_id, signal_description, github):
     # 0. Process link to be raw data link
 
