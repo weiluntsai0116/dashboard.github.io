@@ -12,126 +12,13 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 import subprocess as cmd
+import apps.db_access as db_access
 
 
-# Date and time
-def get_time():
-    now = datetime.now()
-    dt_string = now.strftime("%Y-%m-%d %H:%M:%S")
-    print(" [DEVELOPMENT] date and time =", dt_string)
-    return dt_string
-
-
-get_time()
-
-# DB manipulation
-c_info = {
-    "host": os.getenv('USER_SERVICE_HOST'),
-    "user": os.getenv('USER_SERVICE_USER'),
-    "password": os.getenv("USER_SERVICE_PASSWORD"),
-    "port": int(os.getenv("USER_SERVICE_PORT")),
-    "cursorclass": pymysql.cursors.DictCursor,
-}
-
-
-def get_connection():
-    conn = pymysql.connect(**c_info)
-    return conn
-
-
-def read_signals(user_id):
-    conn = get_connection()
-    df = pd.read_sql(
-        f"select * "
-        f"from signals.signals "
-        f"where user_id = {user_id}",
-        conn
-    )
-    return df
-
-
-def write_signals():
-    conn = create_engine(
-        f'mysql+pymysql://{c_info["user"]}:{c_info["password"]}@{c_info["host"]}:{c_info["port"]}/signals?charset=utf8')
-
-    signals = {
-        'signal_id': ['signal_id_003'],
-        'signal_name': ['signal_name_003'],
-        'signal_description': ['signal_description_003'],
-        'user_id': ['user_id_003']
-    }
-    df = DataFrame(signals, columns=['signal_id', 'signal_name', 'signal_description', 'user_id'])
-    df.to_sql(name='signals', con=conn, if_exists='append', index=False)
-
-
-def build_connection():
-    # todo: exception handling
-    mydb = mysql.connector.connect(
-        host=c_info['host'],
-        user=c_info['user'],
-        password=c_info['password'],
-        database="signals"
-    )
-    mycursor = mydb.cursor()
-    print(" [DEVELOPMENT] connection established.")
-    return (mydb, mycursor)
-
-
-def isExist(user_id, signal_id, mydb, mycursor):
-    sql = "SELECT * FROM signals.signals where user_id = %s and signal_id = %s"
-    val = (user_id, signal_id)
-    mycursor.execute(sql, val)
-    myresult = mycursor.fetchall()
-    print(len(myresult))
-    if len(myresult) != 0:
-        return True
-    return False
-
-def insertTo_table(user_id, signal_id, signal_description, mydb, mycursor):
-    sql = "INSERT INTO signals.signals (signal_id, signal_name, signal_description, user_id, datetime) \
-    VALUES (%s, %s, %s, %s, %s)"
-    dt_string = get_time()
-    val = (signal_id, "signal_name_dummy", signal_description, user_id, dt_string)
-    mycursor.execute(sql, val)
-    mydb.commit()
-    print(sql, val)
-    print(mycursor.rowcount, "record inserted.")
-
-
-def update_table(user_id, signal_id, signal_description, mydb, mycursor):
-    sql = "UPDATE signals.signals SET signal_description = %s, datetime = %s where user_id = %s and signal_id =%s"
-    dt_string = get_time()
-    val = (signal_description, dt_string, user_id, signal_id)
-    mycursor.execute(sql, val)
-    mydb.commit()
-    print(sql, val)
-    print(mycursor.rowcount, "record updated")
-
-
-def deleteFrom_table(user_id, signal_id, mydb, mycursor):
-    sql = "DELETE FROM signals.signals WHERE user_id = %s and signal_id = %s"
-    val = (user_id, signal_id)
-    mycursor.execute(sql, val)
-    mydb.commit()
-    print(sql, val)
-    print(mycursor.rowcount, "record deleted")
-
-
-(mydb, mycursor) = build_connection()
-# insertTo_table('user51', 'signal0', 'signal_description', mydb, mycursor)
-# selectFrom_table('7', '2', mydb, mycursor)
-# update_table('user0', 'signal0', 'description', mydb, mycursor) # if it fails, run "SET SQL_SAFE_UPDATES=0;" in mysql workbench
-# deleteFrom_table('user5', 'signal0', mydb, mycursor)
-
-# Dash app
 external_stylesheets = [dbc.themes.BOOTSTRAP]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 application = app.server
 
-colors = {
-    'background': '#FFFFFF',
-    'text': '#000000'
-}
 
 app.title = 'Dashboard Page'
 app.layout = html.Div([
@@ -140,7 +27,7 @@ app.layout = html.Div([
         children='Dashboard',
         style={
             'textAlign': 'center',
-            'color': colors['text']
+            'color': '#000000'
         }),
 
     html.Br(),
@@ -208,21 +95,21 @@ app.layout = html.Div([
         message='Danger danger! Your just press the \'Delete\' button. \nAre you sure you want to continue?',
     ),
 
-    dbc.Button("Modal with scrollable body", id="open"),
-    dbc.Modal(
-        [
-            dbc.ModalHeader("Error"),
-            dbc.ModalBody("Test result: Fail."),
-            dbc.ModalBody("Please check with the tech support team."),
-            dbc.ModalFooter(
-                dbc.Button(
-                    "Close", id="close", className="ml-auto"
-                )
-            ),
-        ],
-        id="modal",
-        scrollable=True,
-    ),
+    # dbc.Button("Modal with scrollable body", id="open"),
+    # dbc.Modal(
+    #     [
+    #         dbc.ModalHeader("Error"),
+    #         dbc.ModalBody("Test result: Fail."),
+    #         dbc.ModalBody("Please check with the tech support team."),
+    #         dbc.ModalFooter(
+    #             dbc.Button(
+    #                 "Close", id="close", className="ml-auto"
+    #             )
+    #         ),
+    #     ],
+    #     id="modal",
+    #     scrollable=True,
+    # ),
 
     html.Br(),
     dbc.Row([
@@ -231,23 +118,23 @@ app.layout = html.Div([
 ])
 
 
-@app.callback(
-    Output("modal", "is_open"),
-    [
-        Input("open", "n_clicks"),
-        Input("close", "n_clicks"),
-    ],
-    [State("modal", "is_open")],
-)
-def toggle_modal(n1, n2, is_open):
-    if n1 or n2:
-        return not is_open
-    return is_open
+# @app.callback(
+#     Output("modal", "is_open"),
+#     [
+#         Input("open", "n_clicks"),
+#         Input("close", "n_clicks"),
+#     ],
+#     [State("modal", "is_open")],
+# )
+# def toggle_modal(n1, n2, is_open):
+#     if n1 or n2:
+#         return not is_open
+#     return is_open
 
 
 @app.callback(Output('delete-confirm', 'displayed'),
               Input('delete-button', 'n_clicks'))
-def display_confirm(n_clicks):
+def delete_confirm(n_clicks):
     if n_clicks:
         return True
     return False
@@ -282,9 +169,7 @@ def info_disp(delete_n_clicks, modify_n_clicks, create_n_clicks, readit_n_clicks
      State('description-state', 'value'),
      State('github-state', 'value')])
 def create_dash(create_n_clicks, user_id, signal_id, signal_description, github):
-    test_result = True
-    debug_msg = "<debug msg>"
-    if (user_id == "" or signal_id == "") and create_n_clicks != 0:
+    if (user_id == "" or signal_id == "" or github is None) and create_n_clicks != 0:
         create = u'''Create result: Fail! Lack of User ID, Signal ID, or GitHub link'''
     elif isExist(user_id, signal_id, mydb, mycursor) and create_n_clicks != 0:  # todo: as mentioned in create_dash
         create = u'''Create result: Fail! (User ID, Signal ID) is 'duplicate'''
@@ -324,7 +209,7 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
             raw_lists.insert(0, "https://raw.githubusercontent.com")
             raw_link = "/".join(raw_lists)
             print(raw_link)
-            insertTo_table(user_id, signal_id, signal_description, mydb, mycursor)
+            db_access.insertTo_table(user_id, signal_id, signal_description)
             create = 'Create result: Pass!'
 
         # 1. download from github link and modify the filename as we need
@@ -367,14 +252,12 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
      State('description-state', 'value'),
      State('github-state', 'value')])
 def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github):
-    test_result = True
-    debug_msg = "<debug msg>"
     if (user_id == "" or signal_id == "") and modify_n_clicks != 0:
         modify = u'''Modify result: Fail! Lack of User ID, Signal ID, or GitHub link'''
     elif not isExist(user_id, signal_id, mydb, mycursor) and modify_n_clicks != 0:  # todo: as mentioned in create_dash
         modify = u'''Modify result: Fail! (User ID, Signal ID) is not exist'''
     elif modify_n_clicks != 0:
-        update_table(user_id, signal_id, signal_description, mydb, mycursor)
+        db_access.update_table(user_id, signal_id, signal_description)
         # -----------------------------------------------------------------------------
         # todo for Eric: Please insert your function call here. parameter you may need: user_id, signal_id, github.
         #                1. User's github link: {github}
@@ -438,7 +321,6 @@ def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github)
      State('signal_id-state', 'value')])
 def read_dash(readit_n_clicks,
               user_id, signal_id):
-
     if (user_id == "" or signal_id == "") and readit_n_clicks != 0:
         read = u'''Read result: Fail! Lack of User ID or Signal ID'''
     elif not isExist(user_id, signal_id, mydb, mycursor) and readit_n_clicks != 0:  # todo: as mentioned in create_dash
@@ -465,7 +347,7 @@ def delete_dash(delete_n_clicks, user_id, signal_id, signal_description):
     elif not isExist(user_id, signal_id, mydb, mycursor) and delete_n_clicks is not None:  # todo: as mentioned in create_dash
         delete = u'''Delete result: Fail! (User ID, Signal ID) is not exist'''
     elif delete_n_clicks is not None:
-        deleteFrom_table(user_id, signal_id, mydb, mycursor)
+        db_access.deleteFrom_table(user_id, signal_id)
         delete = u'''Delete result: Pass!'''
     else:
         delete = 'Delete: 0 times'
