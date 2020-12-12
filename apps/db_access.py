@@ -36,7 +36,7 @@ def build_connection():
     return mydb, mycursor
 
 
-def isExist(user_id, signal_id):
+def is_exist(user_id, signal_id):
     sql = "SELECT * FROM signals.signals where user_id = %s and signal_id = %s"
     val = (user_id, signal_id)
     (mydb, mycursor) = build_connection()
