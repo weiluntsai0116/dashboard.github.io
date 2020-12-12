@@ -36,14 +36,14 @@ def build_connection():
     return mydb, mycursor
 
 
-def is_exist(user_id, signal_id):
+def is_signal_exist(user_id, signal_id):
     sql = "SELECT * FROM signals.signals where user_id = %s and signal_id = %s"
     val = (user_id, signal_id)
     (mydb, mycursor) = build_connection()
     mycursor.execute(sql, val)
     myresult = mycursor.fetchall()
     mydb.close()
-    print(len(myresult))
+    # print(len(myresult))
     if len(myresult) != 0:
         return True
     return False

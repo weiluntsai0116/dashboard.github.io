@@ -171,7 +171,7 @@ def info_disp(delete_n_clicks, modify_n_clicks, create_n_clicks, readit_n_clicks
 def create_dash(create_n_clicks, user_id, signal_id, signal_description, github):
     if (user_id == "" or signal_id == "" or github is None) and create_n_clicks != 0:
         create = u'''Create result: Fail! Lack of User ID, Signal ID, or GitHub link'''
-    elif db_access.is_exist(user_id, signal_id) and create_n_clicks != 0:  # todo: as mentioned in create_dash
+    elif db_access.is_signal_exist(user_id, signal_id) and create_n_clicks != 0:  # todo: as mentioned in create_dash
         create = u'''Create result: Fail! (User ID, Signal ID) is 'duplicate'''
     elif create_n_clicks != 0:
         # todo: 1. use regex will be better
@@ -254,7 +254,7 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
 def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github):
     if (user_id == "" or signal_id == "") and modify_n_clicks != 0:
         modify = u'''Modify result: Fail! Lack of User ID, Signal ID, or GitHub link'''
-    elif not db_access.is_exist(user_id, signal_id) and modify_n_clicks != 0:  # todo: as mentioned in create_dash
+    elif not db_access.is_signal_exist(user_id, signal_id) and modify_n_clicks != 0:  # todo: as mentioned in create_dash
         modify = u'''Modify result: Fail! (User ID, Signal ID) is not exist'''
     elif modify_n_clicks != 0:
         db_access.update_signal(user_id, signal_id, signal_description)
@@ -323,7 +323,7 @@ def read_dash(readit_n_clicks,
               user_id, signal_id):
     if (user_id == "" or signal_id == "") and readit_n_clicks != 0:
         read = u'''Read result: Fail! Lack of User ID or Signal ID'''
-    elif not db_access.is_exist(user_id, signal_id) and readit_n_clicks != 0:  # todo: as mentioned in create_dash
+    elif not db_access.is_signal_exist(user_id, signal_id) and readit_n_clicks != 0:  # todo: as mentioned in create_dash
         read = u'''Read result: Fail! (User ID, Signal ID) is not exist'''
     elif readit_n_clicks != 0:
         read = u'''Read result: Pass!'''
@@ -344,7 +344,7 @@ def read_dash(readit_n_clicks,
 def delete_dash(delete_n_clicks, user_id, signal_id, signal_description):
     if (user_id == "" or signal_id == "") and delete_n_clicks is not None:
         delete = u'''Delete result: Fail! Lack of User ID or Signal ID'''
-    elif not db_access.is_exist(user_id, signal_id) and delete_n_clicks is not None:  # todo: as mentioned in create_dash
+    elif not db_access.is_signal_exist(user_id, signal_id) and delete_n_clicks is not None:  # todo: as mentioned in create_dash
         delete = u'''Delete result: Fail! (User ID, Signal ID) is not exist'''
     elif delete_n_clicks is not None:
         db_access.delete_signal(user_id, signal_id)
