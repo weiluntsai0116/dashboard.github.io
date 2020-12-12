@@ -13,6 +13,7 @@ import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 import subprocess as cmd
 import apps.db_access as db_access
+import apps.test_and_upload as app_upload
 
 
 external_stylesheets = [dbc.themes.BOOTSTRAP]
@@ -170,9 +171,9 @@ def info_disp(delete_n_clicks, modify_n_clicks, create_n_clicks, readit_n_clicks
      State('github-state', 'value')])
 def create_dash(create_n_clicks, user_id, signal_id, signal_description, github):
     if (user_id == "" or signal_id == "" or github is None) and create_n_clicks != 0:
-        create = u'''Create result: Fail! Lack of User ID, Signal ID, or GitHub link'''
+        create = u'''Create: Fail! Lack of User ID, Signal ID, or GitHub link'''
     elif db_access.is_signal_exist(user_id, signal_id) and create_n_clicks != 0:  # todo: as mentioned in create_dash
-        create = u'''Create result: Fail! (User ID, Signal ID) is 'duplicate'''
+        create = u'''Create: Fail! (User ID, Signal ID) is 'duplicate'''
     elif create_n_clicks != 0:
         # todo: 1. use regex will be better
         # todo: 2. should be implemented in def insertTo_table()
@@ -193,52 +194,9 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
         #                   4) If the figure you expected appear below, then you complete the integration
         #                4. deployment error: 99% from the requirements.txt
         # -----------------------------------------------------------------------------
-
-        # 0. Process link to be raw data link
-
-        contents_list = github.split('/')
-        raw_link = None
-        if "github.com" not in contents_list or 'blob' not in contents_list:
-            print("The provided github link is invalid. ")
-            create = "The provided github link is invalid. "
-        else:
-            github_idx = contents_list.index("github.com")
-            raw_lists = contents_list[github_idx + 1:]
-            raw_lists.remove('blob')
-
-            raw_lists.insert(0, "https://raw.githubusercontent.com")
-            raw_link = "/".join(raw_lists)
-            print(raw_link)
-            db_access.insert_signal(user_id, signal_id, signal_description)
-            create = 'Create result: Pass!'
-
-        # 1. download from github link and modify the filename as we need
-        try:
-            cp = cmd.run(f"wget -O user{user_id}_signal{signal_id}.html {raw_link}", check=True, shell=True)
-            print(cp)
-        except:
-            print("Download file failed.")
-
-        # 3. upload to github
-        try:
-            cp = cmd.run("git add .", check=True, shell=True)
-            print("Git add: ")
-            print(cp)
-            cp = cmd.run(f"git commit -m 'upload user file'", check=True, shell=True)
-            print("Git commit: ")
-            print(cp)
-
-            cp = cmd.run("git push -u origin main -f", check=True, shell=True)
-            print("Git push: ")
-            print(cp)
-
-        except:
-            print("Didn't upload to github. ")
-            # return False
-
-        # u'''Create: {} times'''.format(create_n_clicks)
+        create = app_upload.test_and_upload_for_create(create_n_clicks, user_id, signal_id, signal_description, github)
     elif create_n_clicks != 0:
-        create = u'''Create result: Fail! Lack of User ID, Signal ID, or GitHub link'''
+        create = u'''Create: Fail! Lack of User ID, Signal ID, or GitHub link'''
     else:
         create = 'Create: 0 times'
     return create
@@ -253,61 +211,16 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
      State('github-state', 'value')])
 def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github):
     if (user_id == "" or signal_id == "") and modify_n_clicks != 0:
-        modify = u'''Modify result: Fail! Lack of User ID, Signal ID, or GitHub link'''
+        modify = u'''Modify: Fail! Lack of User ID, Signal ID, or GitHub link'''
     elif not db_access.is_signal_exist(user_id, signal_id) and modify_n_clicks != 0:  # todo: as mentioned in create_dash
-        modify = u'''Modify result: Fail! (User ID, Signal ID) is not exist'''
+        modify = u'''Modify: Fail! (User ID, Signal ID) is not exist'''
     elif modify_n_clicks != 0:
-        db_access.update_signal(user_id, signal_id, signal_description)
-        # -----------------------------------------------------------------------------
-        # todo for Eric: Please insert your function call here. parameter you may need: user_id, signal_id, github.
-        #                1. User's github link: {github}
-        #                2. The naming format of the new html file should be:
-        #                https://weiluntsai0116.github.io/dashboard.github.io/user{user_id}_signal{signal_id}.html
-        #                3. Please test if it works by:
-        #                   0) imagine you're an user.
-        #                     - Use the dashcode template (.py) you wrote
-        #                     - Generate .html
-        #                     - Upload .html you wrote to your github.
-        #                   1) create a new signal: fill out User ID, Signal ID, Github link, and press the Create button
-        #                   2) wait for a while (DB update, html upload)
-        #                   3) read back the signal: fill out the same User ID, Signal ID, and press the Read button
-        #                   4) If the figure you expected appear below, then you complete the integration
-        #                4. deployment error: 99% from the requirements.txt
-        # -----------------------------------------------------------------------------
-
-        # 1. download from github link and modify the filename as we need
-        try:
-            cp = cmd.run(f"wget -O user{user_id}_signal{signal_id}.html {github}", check=True, shell=True)
-            print(cp)
-        except:
-            print("Download file failed.")
-
-        # 2. Modify name to be user{user_id}_signal{signal_id}.html
-        user_fn = github.split('/')[-1]
-        try:
-            cp = cmd.run(f"mv {user_fn} user{user_id}_signal{signal_id}.html", check=True, shell=True)
-            print(cp)
-        except:
-            print("Change filename failed.")
-
-        # 3. upload to github
-        try:
-            cp = cmd.run("git add .", check=True, shell=True)
-            print("Git add: ")
-            print(cp)
-            cp = cmd.run(f"git commit -m 'update user file'", check=True, shell=True)
-            print("Git commit: ")
-            print(cp)
-
-            cp = cmd.run("git push -u origin main -f", check=True, shell=True)
-            print("Git push: ")
-            print(cp)
-
-        except:
-            print("Didn't upload to github. ")
-            # return False
-
-        modify = 'Modify result: Pass!'  # u'''Modify: {} times'''.format(modify_n_clicks)
+        upload_result = app_upload.test_and_upload_for_modify(modify_n_clicks, user_id, signal_id, signal_description, github)
+        if upload_result:
+            db_access.update_signal(user_id, signal_id, signal_description)
+            modify = 'Modify: Pass!'  # u'''Modify: {} times'''.format(modify_n_clicks)
+        else:
+            modify = 'Modify: test and upload fail.'  # u'''Modify: {} times'''.format(modify_n_clicks)
     else:
         modify = 'Modify: 0 times'
     return modify
@@ -322,11 +235,11 @@ def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github)
 def read_dash(readit_n_clicks,
               user_id, signal_id):
     if (user_id == "" or signal_id == "") and readit_n_clicks != 0:
-        read = u'''Read result: Fail! Lack of User ID or Signal ID'''
+        read = u'''Read: Fail! Lack of User ID or Signal ID'''
     elif not db_access.is_signal_exist(user_id, signal_id) and readit_n_clicks != 0:  # todo: as mentioned in create_dash
-        read = u'''Read result: Fail! (User ID, Signal ID) is not exist'''
+        read = u'''Read: Fail! (User ID, Signal ID) is not exist'''
     elif readit_n_clicks != 0:
-        read = u'''Read result: Pass!'''
+        read = u'''Read: Pass!'''
     else:
         read = 'Read: 0 times'
     iframe = html.Iframe(
@@ -343,12 +256,12 @@ def read_dash(readit_n_clicks,
      State('description-state', 'value')])
 def delete_dash(delete_n_clicks, user_id, signal_id, signal_description):
     if (user_id == "" or signal_id == "") and delete_n_clicks is not None:
-        delete = u'''Delete result: Fail! Lack of User ID or Signal ID'''
+        delete = u'''Delete: Fail! Lack of User ID or Signal ID'''
     elif not db_access.is_signal_exist(user_id, signal_id) and delete_n_clicks is not None:  # todo: as mentioned in create_dash
-        delete = u'''Delete result: Fail! (User ID, Signal ID) is not exist'''
+        delete = u'''Delete: Fail! (User ID, Signal ID) is not exist'''
     elif delete_n_clicks is not None:
         db_access.delete_signal(user_id, signal_id)
-        delete = u'''Delete result: Pass!'''
+        delete = u'''Delete: Pass!'''
     else:
         delete = 'Delete: 0 times'
     return delete
