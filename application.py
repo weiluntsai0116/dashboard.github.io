@@ -6,22 +6,29 @@ import mysql.connector
 from sqlalchemy import create_engine
 from pandas import DataFrame
 from datetime import datetime
+import flask
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
+import jwt
+from cryptography.fernet import Fernet, InvalidToken  # new
 import apps.db_access as db_access
 import apps.test_and_upload as app_upload
+import apps.security as security
 
+redirect_page = security.login_page_url
 
 external_stylesheets = [dbc.themes.BOOTSTRAP]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 application = app.server
 
-
 app.title = 'Dashboard Page'
 app.layout = html.Div([
+
+    dcc.Location(id='dashboard_service_url', refresh=False),
+    html.Div(id='error_redirect_page'),
 
     html.H3(
         children='Dashboard',
@@ -115,21 +122,63 @@ app.layout = html.Div([
     dbc.Row([
         html.Div(id='dash-output')
     ], justify="center"),
+
+    # session div. meant to be hide
+    html.Div(id='session'),
+    html.Div(id='out'),
 ])
 
 
-# @app.callback(
-#     Output("modal", "is_open"),
-#     [
-#         Input("open", "n_clicks"),
-#         Input("close", "n_clicks"),
-#     ],
-#     [State("modal", "is_open")],
-# )
-# def toggle_modal(n1, n2, is_open):
-#     if n1 or n2:
-#         return not is_open
-#     return is_open
+@app.callback(Output('error_redirect_page', 'children'),
+              Output('session', 'children'),
+              [Input('dashboard_service_url', 'href')])
+def check_token(pathname):
+    # Format: http://xxx/xxxx?token=iamatoken
+    path_info = pathname.split("?token=")
+    # Does not contain token
+    print(pathname)
+    if len(path_info) != 2:
+        return dcc.Location(href=redirect_page, id="any"), ""
+
+    signed_token = path_info[1]
+    f = Fernet(security.fernet_secret)
+    try:
+        jwt_token = f.decrypt(signed_token.encode("utf-8")).decode("utf-8")
+    except (InvalidToken, TypeError):
+        print("exception 1: ", InvalidToken, "; fernet_secret: ", security.fernet_secret)
+        return dcc.Location(href=redirect_page, id="any"), ""
+    # print("jwt_token = ", jwt_token)
+    # flask.session['token'] = jwt_token
+    # print("session token = ", flask.session['token'])
+
+    if jwt_token.startswith("Bearer "):
+        jwt_token = jwt_token[7:]
+    try:
+        payload = jwt.decode(jwt_token, security.jwt_secret,
+                             algorithms=[security.jwt_algo])
+        # payload = {
+        #     "user_id": user["user_id"],
+        #     "role": user["role"],
+        #     "email": user["email"],
+        #     "exp": datetime.utcnow() + timedelta(seconds=jwt_exp_delta_sec)
+        # }
+
+        if payload["role"] not in {"support", "ip"}:
+            print("exception 2")
+            return dcc.Location(href=redirect_page, id="any"), ""  # ["Permission Denied", 403] # ["Not authenticated", 400]
+        else:
+            return "", payload['user_id'] # everything's good
+    except (jwt.DecodeError, jwt.ExpiredSignatureError):
+        print("exception 3")
+        return dcc.Location(href=redirect_page, id="any"), ""  # ["Token is invalid", 401]
+    return dcc.Location(href=redirect_page, id="any"), "" # something unexpected happened
+
+
+@app.callback(Output('out', 'children'),
+              Input('session', 'children'))
+def get_user_id(user_id):
+    print("user_id = ", user_id)
+    return user_id
 
 
 @app.callback(Output('delete-confirm', 'displayed'),
@@ -211,10 +260,12 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
 def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github):
     if (user_id == "" or signal_id == "") and modify_n_clicks != 0:
         modify = u'''Modify: Fail! Lack of User ID, Signal ID, or GitHub link'''
-    elif not db_access.is_signal_exist(user_id, signal_id) and modify_n_clicks != 0:  # todo: as mentioned in create_dash
+    elif not db_access.is_signal_exist(user_id,
+                                       signal_id) and modify_n_clicks != 0:  # todo: as mentioned in create_dash
         modify = u'''Modify: Fail! (User ID, Signal ID) is not exist'''
     elif modify_n_clicks != 0:
-        upload_result = app_upload.test_and_upload_for_modify(modify_n_clicks, user_id, signal_id, signal_description, github)
+        upload_result = app_upload.test_and_upload_for_modify(modify_n_clicks, user_id, signal_id, signal_description,
+                                                              github)
         if upload_result:
             db_access.update_signal(user_id, signal_id, signal_description)
             modify = 'Modify: Pass!'  # u'''Modify: {} times'''.format(modify_n_clicks)
@@ -235,7 +286,8 @@ def read_dash(readit_n_clicks,
               user_id, signal_id):
     if (user_id == "" or signal_id == "") and readit_n_clicks != 0:
         read = u'''Read: Fail! Lack of User ID or Signal ID'''
-    elif not db_access.is_signal_exist(user_id, signal_id) and readit_n_clicks != 0:  # todo: as mentioned in create_dash
+    elif not db_access.is_signal_exist(user_id,
+                                       signal_id) and readit_n_clicks != 0:  # todo: as mentioned in create_dash
         read = u'''Read: Fail! (User ID, Signal ID) is not exist'''
     elif readit_n_clicks != 0:
         read = u'''Read: Pass!'''
@@ -256,7 +308,8 @@ def read_dash(readit_n_clicks,
 def delete_dash(delete_n_clicks, user_id, signal_id, signal_description):
     if (user_id == "" or signal_id == "") and delete_n_clicks is not None:
         delete = u'''Delete: Fail! Lack of User ID or Signal ID'''
-    elif not db_access.is_signal_exist(user_id, signal_id) and delete_n_clicks is not None:  # todo: as mentioned in create_dash
+    elif not db_access.is_signal_exist(user_id,
+                                       signal_id) and delete_n_clicks is not None:  # todo: as mentioned in create_dash
         delete = u'''Delete: Fail! (User ID, Signal ID) is not exist'''
     elif delete_n_clicks is not None:
         db_access.delete_signal(user_id, signal_id)
@@ -265,6 +318,19 @@ def delete_dash(delete_n_clicks, user_id, signal_id, signal_description):
         delete = 'Delete: 0 times'
     return delete
 
+
+# @app.callback(
+#     Output("modal", "is_open"),
+#     [
+#         Input("open", "n_clicks"),
+#         Input("close", "n_clicks"),
+#     ],
+#     [State("modal", "is_open")],
+# )
+# def toggle_modal(n1, n2, is_open):
+#     if n1 or n2:
+#         return not is_open
+#     return is_open
 
 if __name__ == '__main__':
     application.run(debug=True, port=8080)
