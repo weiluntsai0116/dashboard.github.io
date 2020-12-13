@@ -39,8 +39,9 @@ app.layout = html.Div([
 
     html.Br(),
     dbc.Row([
-        dbc.Col(html.Div(["User ID:   ", dcc.Input(id='user_id-state', placeholder="0", type='text', value='')]),
-                width=2),
+        dbc.Col(html.Div(id='userid-output'), width=2),
+        # dbc.Col(html.Div(["User ID:   ", dcc.Input(id='user_id-state', placeholder="0", type='text', value='')]),
+        #         width=2),
         dbc.Col(html.Div(["Signal ID: ", dcc.Input(id='signal_id-state', placeholder="0", type='text', value='')]),
                 width=2),
         dbc.Col(html.Div(
@@ -83,7 +84,6 @@ app.layout = html.Div([
 
     html.Br(),
     dbc.Row([
-        dbc.Col(html.Div(id='userid-output'), width=2),
         dbc.Col(html.Div(id='signalid-output'), width=2),
         dbc.Col(html.Div(id='description-output', style={'whiteSpace': 'pre-line'}), width=2),
         dbc.Col(html.Div(id='github-output', style={'whiteSpace': 'pre-line'}), width=2),
@@ -124,13 +124,14 @@ app.layout = html.Div([
     ], justify="center"),
 
     # session div for global vars. meant to be hidden.
-    html.Div(id='user_id'),
-    html.Div(id='test_out'),
+    html.Div(id='user_id-state'),
+    # html.Div(id='test_out'),
 ])
 
 
 @app.callback(Output('error_redirect_page', 'children'),
-              Output('user_id', 'children'),
+              Output('user_id-state', 'children'),
+              Output('userid-output', 'children'),
               [Input('dashboard_service_url', 'href')])
 def check_token(pathname):
     # dev_mode:
@@ -139,14 +140,14 @@ def check_token(pathname):
     dev_mode = True
 
     if dev_mode:
-        return '', 0
+        return '', 0, u'''User ID: 0'''
     else:
         # Format: http://xxx/xxxx?token=iamatoken
         path_info = pathname.split("?token=")
         # Does not contain token
         print(pathname)
         if len(path_info) != 2:
-            return dcc.Location(href=redirect_page, id="any"), ""
+            return dcc.Location(href=redirect_page, id="any"), "", ""
 
         signed_token = path_info[1]
         f = Fernet(security.fernet_secret)
@@ -154,7 +155,7 @@ def check_token(pathname):
             jwt_token = f.decrypt(signed_token.encode("utf-8")).decode("utf-8")
         except (InvalidToken, TypeError):
             print("exception 1: ", InvalidToken, "; fernet_secret: ", security.fernet_secret)
-            return dcc.Location(href=redirect_page, id="any"), ""
+            return dcc.Location(href=redirect_page, id="any"), "", ""
         # print("jwt_token = ", jwt_token)
         # flask.session['token'] = jwt_token
         # print("session token = ", flask.session['token'])
@@ -173,20 +174,21 @@ def check_token(pathname):
 
             if payload["role"] not in {"support", "ip"}:
                 print("exception 2")
-                return dcc.Location(href=redirect_page, id="any"), ""  # ["Permission Denied", 403] # ["Not authenticated", 400]
+                return dcc.Location(href=redirect_page, id="any"), "", ""  # ["Permission Denied", 403] # ["Not authenticated", 400]
             else:
-                return "", payload['user_id'] # everything's good
+                print("user_id = ", payload['user_id'], u'''User ID: {}'''.format(payload['user_id']))
+                return "", payload['user_id'], u'''User ID: {}'''.format(payload['user_id'])  # everything's good
         except (jwt.DecodeError, jwt.ExpiredSignatureError):
             print("exception 3")
-            return dcc.Location(href=redirect_page, id="any"), ""  # ["Token is invalid", 401]
-        return dcc.Location(href=redirect_page, id="any"), "" # something unexpected happened
+            return dcc.Location(href=redirect_page, id="any"), "", ""  # ["Token is invalid", 401]
+        return dcc.Location(href=redirect_page, id="any"), "", ""  # something unexpected happened
 
 
-@app.callback(Output('test_out', 'children'),
-              Input('user_id', 'children'))
-def get_user_id(user_id):
-    print("user_id = ", user_id)
-    return user_id
+# @app.callback(Output('test_out', 'children'),
+#               Input('user_id', 'children'))
+# def get_user_id(user_id):
+#     print("user_id = ", user_id)
+#     return user_id
 
 
 @app.callback(Output('delete-confirm', 'displayed'),
@@ -197,7 +199,7 @@ def delete_confirm(n_clicks):
     return False
 
 
-@app.callback([Output('userid-output', 'children'),
+@app.callback([
                Output('signalid-output', 'children'),
                Output('description-output', 'children'),
                Output('github-output', 'children')],
@@ -205,7 +207,7 @@ def delete_confirm(n_clicks):
                Input('modify-button', 'n_clicks'),
                Input('create-button', 'n_clicks'),
                Input('readit-button', 'n_clicks')],
-              [State('user_id-state', 'value'),
+              [State('user_id-state', 'children'),
                State('signal_id-state', 'value'),
                State('description-state', 'value'),
                State('github-state', 'value')])
@@ -215,13 +217,13 @@ def info_disp(delete_n_clicks, modify_n_clicks, create_n_clicks, readit_n_clicks
     signal_id = u'''Signal ID: {}'''.format(signal_id)
     description = u'''Description: {}'''.format(description)
     github = u'''Github link: {}'''.format(github)
-    return user_id, signal_id, description, github
+    return signal_id, description, github
 
 
 @app.callback(
     Output('create-output', 'children'),
     [Input('create-button', 'n_clicks')],
-    [State('user_id-state', 'value'),
+    [State('user_id-state', 'children'),
      State('signal_id-state', 'value'),
      State('description-state', 'value'),
      State('github-state', 'value')])
@@ -261,7 +263,7 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
 @app.callback(
     Output('modify-output', 'children'),
     [Input('modify-button', 'n_clicks')],
-    [State('user_id-state', 'value'),
+    [State('user_id-state', 'children'),
      State('signal_id-state', 'value'),
      State('description-state', 'value'),
      State('github-state', 'value')])
@@ -274,6 +276,7 @@ def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github)
     elif modify_n_clicks != 0:
         upload_result = app_upload.test_and_upload_for_modify(modify_n_clicks, user_id, signal_id, signal_description,
                                                               github)
+        # db_access.update_signal(user_id, signal_id, signal_description)
         if upload_result:
             db_access.update_signal(user_id, signal_id, signal_description)
             modify = 'Modify: Pass!'  # u'''Modify: {} times'''.format(modify_n_clicks)
@@ -288,7 +291,7 @@ def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github)
     [Output('readit-output', 'children'),
      Output('dash-output', 'children')],
     [Input('readit-button', 'n_clicks')],
-    [State('user_id-state', 'value'),
+    [State('user_id-state', 'children'),
      State('signal_id-state', 'value')])
 def read_dash(readit_n_clicks,
               user_id, signal_id):
@@ -310,7 +313,7 @@ def read_dash(readit_n_clicks,
 @app.callback(
     Output('delete-output', 'children'),
     [Input('delete-confirm', 'submit_n_clicks')],
-    [State('user_id-state', 'value'),
+    [State('user_id-state', 'children'),
      State('signal_id-state', 'value'),
      State('description-state', 'value')])
 def delete_dash(delete_n_clicks, user_id, signal_id, signal_description):
