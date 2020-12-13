@@ -304,7 +304,7 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
         #                4. deployment error: 99% from the requirements.txt
         # -----------------------------------------------------------------------------
 
-        create = 'Create result: Pass!'
+        create = 'Create result: '
 
         #0. Process link to be raw data link
 
@@ -320,14 +320,17 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
 
             raw_lists.insert(0, "https://raw.githubusercontent.com")
             raw_link = "/".join(raw_lists)
-            print(raw_link)
+
 
         # 1. download from github link and modify the filename as we need
         try:
             cp = cmd.run(f"wget -O user{user_id}_signal{signal_id}.html {raw_link}", check=True, shell=True)
             print(cp)
         except:
+            create = "Download file failed."
             print("Download file failed.")
+
+        # 2. testing, we omit this step right now.
 
         # 3. upload to github
         try:
@@ -343,6 +346,7 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
             print(cp)
 
         except:
+            create = "Upload to github failed. "
             print("Didn't upload to github. ")
             # return False
 
