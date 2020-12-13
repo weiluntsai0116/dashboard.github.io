@@ -1,8 +1,18 @@
 import subprocess as cmd
 import apps.db_access as db_access
 
+
 def test_and_upload_for_create(create_n_clicks, user_id, signal_id, signal_description, github):
-    # 0. Process link to be raw data link
+
+    # 0.1 git pull, update files from github first
+    try:
+        cp = cmd.run(f"git pull", check=True, shell=True)
+        print(cp)
+    except:
+        print("Update with github failed.")
+        return 'Create: Update with github failed.'
+
+    # 0.2. Process link to be raw data link
 
     # db_access.insert_signal(user_id, signal_id, signal_description)
     contents_list = github.split('/')
@@ -44,9 +54,9 @@ def test_and_upload_for_create(create_n_clicks, user_id, signal_id, signal_descr
 
     except:
         print("Didn't upload to github. ")
-        return "Create: Didn't upload to github."
+        return "Create: Upload to github failed."
 
-
+'''
 def test_and_upload_for_modify(modify_n_clicks, user_id, signal_id, signal_description, github):
     # 1. download from github link and modify the filename as we need
     try:
@@ -82,3 +92,4 @@ def test_and_upload_for_modify(modify_n_clicks, user_id, signal_id, signal_descr
     except:
         print("Didn't upload to github. ")
         return False
+'''
