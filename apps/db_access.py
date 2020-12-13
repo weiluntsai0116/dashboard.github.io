@@ -36,6 +36,14 @@ def build_connection():
     return mydb, mycursor
 
 
+def get_user_name_by_user_id(user_id):
+    sql = u'''SELECT * FROM signals.users where user_id = {}'''.format(user_id)
+    (mydb, mycursor) = build_connection()
+    mycursor.execute(sql)
+    myresult = mycursor.fetchall()
+    return myresult[0][1]
+
+
 def is_signal_exist(user_id, signal_id):
     sql = "SELECT * FROM signals.signals where user_id = %s and signal_id = %s"
     val = (user_id, signal_id)

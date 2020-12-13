@@ -39,7 +39,7 @@ app.layout = html.Div([
 
     html.Br(),
     dbc.Row([
-        dbc.Col(html.Div(id='userid-output'), width=2),
+        dbc.Col(html.Div(id='username-output'), width=2),
         # dbc.Col(html.Div(["User ID:   ", dcc.Input(id='user_id-state', placeholder="0", type='text', value='')]),
         #         width=2),
         dbc.Col(html.Div(["Signal ID: ", dcc.Input(id='signal_id-state', placeholder="0", type='text', value='')]),
@@ -131,7 +131,7 @@ app.layout = html.Div([
 
 @app.callback(Output('error_redirect_page', 'children'),
               Output('user_id-state', 'children'),
-              Output('userid-output', 'children'),
+              Output('username-output', 'children'),
               [Input('dashboard_service_url', 'href')])
 def check_token(pathname):
     # dev_mode:
@@ -140,7 +140,8 @@ def check_token(pathname):
     dev_mode = True
 
     if dev_mode:
-        return '', 0, u'''User ID: 0'''
+        print("User Name: ", db_access.get_user_name_by_user_id(0))
+        return '', 0, u'''User Name: {}'''.format(db_access.get_user_name_by_user_id(0))
     else:
         # Format: http://xxx/xxxx?token=iamatoken
         path_info = pathname.split("?token=")
@@ -176,8 +177,8 @@ def check_token(pathname):
                 print("exception 2")
                 return dcc.Location(href=redirect_page, id="any"), "", ""  # ["Permission Denied", 403] # ["Not authenticated", 400]
             else:
-                print("user_id = ", payload['user_id'], u'''User ID: {}'''.format(payload['user_id']))
-                return "", payload['user_id'], u'''User ID: {}'''.format(payload['user_id'])  # everything's good
+                print("user_id = ", payload['user_id'], u'''User ID: {} User Name: '''.format(payload['user_id']), db_access.get_user_name_by_user_id(payload['user_id']))
+                return "", payload['user_id'], u'''User Name: {}'''.format(db_access.get_user_name_by_user_id(payload['user_id']))  # everything's good
         except (jwt.DecodeError, jwt.ExpiredSignatureError):
             print("exception 3")
             return dcc.Location(href=redirect_page, id="any"), "", ""  # ["Token is invalid", 401]
