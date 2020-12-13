@@ -1,7 +1,8 @@
 ## dashboard.github.io
 
 ### App location:
-http://dashboard-env-1.eba-szsfmavw.us-east-2.elasticbeanstalk.com/
+User node: http://dashboard-env-1.eba-szsfmavw.us-east-2.elasticbeanstalk.com/
+Demo mode: http://dashboard-env-1.eba-szsfmavw.us-east-2.elasticbeanstalk.com/?token=demo
 
 ### Content to be refine: deadline: 12/E
 1. Tech stacks:
@@ -9,6 +10,7 @@ http://dashboard-env-1.eba-szsfmavw.us-east-2.elasticbeanstalk.com/
     - AWS CodePipeline
     - AWS Elastic Beanstalk
     - AWS RDS (MySQL)
+    - JWT/ Fernent
 2. Instructions:
     - User's operation:
         1. write a python dash code containing their dash figure.

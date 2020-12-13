@@ -136,24 +136,28 @@ app.layout = html.Div([
               Output('username-output', 'children'),
               [Input('dashboard_service_url', 'href')])
 def check_token(pathname):
+    # URL format: http://xxx/xxxx?token=iamatoken
+
+    path_info = pathname.split("?token=")
+    print("pathname = ", pathname, "path_info = ", path_info)
+    if len(path_info) != 2:  # check if token exist
+        return dcc.Location(href=redirect_page, id="any"), "", ""
+
+    signed_token = path_info[1]
+
     # dev_mode:
     # True: always authorized; user_id = 11;
     # False: token is needed; user_id = 2;
-    dev_mode = True
+    if signed_token == "demo":
+        dev_mode = True
+    else:
+        dev_mode = False
 
     if dev_mode:
         user_id = 11
         print("User Name: ", db_access.get_user_name_by_user_id(user_id))
         return '', user_id, u'''User Name: {}'''.format(db_access.get_user_name_by_user_id(user_id))
     else:
-        # Format: http://xxx/xxxx?token=iamatoken
-        path_info = pathname.split("?token=")
-        # Does not contain token
-        print(pathname)
-        if len(path_info) != 2:
-            return dcc.Location(href=redirect_page, id="any"), "", ""
-
-        signed_token = path_info[1]
         f = Fernet(security.fernet_secret)
         try:
             jwt_token = f.decrypt(signed_token.encode("utf-8")).decode("utf-8")
