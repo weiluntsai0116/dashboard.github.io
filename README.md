@@ -1,8 +1,8 @@
 ## dashboard.github.io
 
 ### App location:
-User node: http://dashboard-env-1.eba-szsfmavw.us-east-2.elasticbeanstalk.com/
-Demo mode: http://dashboard-env-1.eba-szsfmavw.us-east-2.elasticbeanstalk.com/?token=demo
+- User node: http://dashboard-env-1.eba-szsfmavw.us-east-2.elasticbeanstalk.com/
+- Demo mode: http://dashboard-env-1.eba-szsfmavw.us-east-2.elasticbeanstalk.com/?token=demo
 
 ### Content to be refine: deadline: 12/E
 1. Tech stacks:
