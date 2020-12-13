@@ -237,7 +237,8 @@ def info_disp(delete_n_clicks, modify_n_clicks, create_n_clicks, readit_n_clicks
      State('github-state', 'value')])
 def create_dash(create_n_clicks, user_id, signal_id, signal_description, github):
     if create_n_clicks != 0:
-        if user_id == "" or signal_id == "":
+        # if user_id == "" or signal_id == "": Need to comment it for local testing
+        if signal_id == "":
             create = u'''Create: Fail! Lack of Signal ID'''
         elif github is None:
             create = u'''Create: Fail! Lack of GitHub link'''
