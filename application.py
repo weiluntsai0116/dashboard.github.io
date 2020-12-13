@@ -135,7 +135,7 @@ app.layout = html.Div([
               [Input('dashboard_service_url', 'href')])
 def check_token(pathname):
     # dev_mode:
-    # True: always authorized; user_id = 0
+    # True: always authorized; user_id = 11;
     # False: token is needed; user_id = 2;
     dev_mode = True
 
