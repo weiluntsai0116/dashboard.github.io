@@ -140,8 +140,9 @@ def check_token(pathname):
     dev_mode = True
 
     if dev_mode:
-        print("User Name: ", db_access.get_user_name_by_user_id(0))
-        return '', 0, u'''User Name: {}'''.format(db_access.get_user_name_by_user_id(0))
+        user_id = 11
+        print("User Name: ", db_access.get_user_name_by_user_id(user_id))
+        return '', user_id, u'''User Name: {}'''.format(db_access.get_user_name_by_user_id(user_id))
     else:
         # Format: http://xxx/xxxx?token=iamatoken
         path_info = pathname.split("?token=")
