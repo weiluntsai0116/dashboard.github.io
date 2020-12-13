@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from pandas import DataFrame
 from datetime import datetime
 import flask
+import re
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -23,6 +24,7 @@ redirect_page = security.login_page_url
 external_stylesheets = [dbc.themes.BOOTSTRAP]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 application = app.server
+
 
 app.title = 'Dashboard Page'
 app.layout = html.Div([
@@ -52,7 +54,7 @@ app.layout = html.Div([
     html.Br(),
     dbc.Row([
         dbc.InputGroup(
-            [  # todo: user input format tbd (github link or what?)
+            [
                 dbc.InputGroupAddon("GitHub link", addon_type="prepend"),
                 dbc.Input(id='github-state',
                           placeholder="https://weiluntsai0116.github.io/dashboard.github.io/user0_signal0.html"),
@@ -230,33 +232,33 @@ def info_disp(delete_n_clicks, modify_n_clicks, create_n_clicks, readit_n_clicks
      State('description-state', 'value'),
      State('github-state', 'value')])
 def create_dash(create_n_clicks, user_id, signal_id, signal_description, github):
-    if (user_id == "" or signal_id == "" or github is None) and create_n_clicks != 0:
-        create = u'''Create: Fail! Lack of User ID, Signal ID, or GitHub link'''
-    elif db_access.is_signal_exist(user_id, signal_id) and create_n_clicks != 0:  # todo: as mentioned in create_dash
-        create = u'''Create: Fail! (User ID, Signal ID) is 'duplicate'''
-    elif create_n_clicks != 0:
-        # todo: 1. use regex will be better
-        # todo: 2. should be implemented in def insertTo_table()
-        # todo: 3. should use INSERT IGNORE INTO
-        # -----------------------------------------------------------------------------
-        # todo for Eric: Please insert your function call here. parameter you may need: user_id, signal_id, github.
-        #                1. User's github link: {github}
-        #                2. The naming format of the new html file should be:
-        #                https://weiluntsai0116.github.io/dashboard.github.io/user{user_id}_signal{signal_id}.html
-        #                3. Please test if it works by:
-        #                   0) imagine you're an user.
-        #                     - Use the dashcode template (.py) you wrote
-        #                     - Generate .html
-        #                     - Upload .html you wrote to your github.
-        #                   1) create a new signal: fill out User ID, Signal ID, Github link, and press the Create button
-        #                   2) wait for a while (DB update, html upload)
-        #                   3) read back the signal: fill out the same User ID, Signal ID, and press the Read button
-        #                   4) If the figure you expected appear below, then you complete the integration
-        #                4. deployment error: 99% from the requirements.txt
-        # -----------------------------------------------------------------------------
-        create = app_upload.test_and_upload_for_create(create_n_clicks, user_id, signal_id, signal_description, github)
-    elif create_n_clicks != 0:
-        create = u'''Create: Fail! Lack of User ID, Signal ID, or GitHub link'''
+    if create_n_clicks != 0:
+        if user_id == "" or signal_id == "":
+            create = u'''Create: Fail! Lack of Signal ID'''
+        elif github is None:
+            create = u'''Create: Fail! Lack of GitHub link'''
+        elif not re.search('^\d*$', signal_id):
+            create = u'''Create: Fail! Invalid signal ID'''
+        elif db_access.is_signal_exist(user_id, signal_id):
+            create = u'''Create: Fail! (User ID, Signal ID) is 'duplicate'''
+        else:
+            # -----------------------------------------------------------------------------
+            # todo for Eric: Please insert your function call here. parameter you may need: user_id, signal_id, github.
+            #                1. User's github link: {github}
+            #                2. The naming format of the new html file should be:
+            #                https://weiluntsai0116.github.io/dashboard.github.io/user{user_id}_signal{signal_id}.html
+            #                3. Please test if it works by:
+            #                   0) imagine you're an user.
+            #                     - Use the dashcode template (.py) you wrote
+            #                     - Generate .html
+            #                     - Upload .html you wrote to your github.
+            #                   1) create a new signal: fill out User ID, Signal ID, Github link, and press the Create button
+            #                   2) wait for a while (DB update, html upload)
+            #                   3) read back the signal: fill out the same User ID, Signal ID, and press the Read button
+            #                   4) If the figure you expected appear below, then you complete the integration
+            #                4. deployment error: 99% from the requirements.txt
+            # -----------------------------------------------------------------------------
+            create = app_upload.test_and_upload_for_create(create_n_clicks, user_id, signal_id, signal_description, github)
     else:
         create = 'Create: 0 times'
     return create
@@ -270,20 +272,22 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
      State('description-state', 'value'),
      State('github-state', 'value')])
 def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github):
-    if (user_id == "" or signal_id == "") and modify_n_clicks != 0:
-        modify = u'''Modify: Fail! Lack of User ID, Signal ID, or GitHub link'''
-    elif not db_access.is_signal_exist(user_id,
-                                       signal_id) and modify_n_clicks != 0:  # todo: as mentioned in create_dash
-        modify = u'''Modify: Fail! (User ID, Signal ID) is not exist'''
-    elif modify_n_clicks != 0:
-        upload_result = app_upload.test_and_upload_for_modify(modify_n_clicks, user_id, signal_id, signal_description,
-                                                              github)
-        # db_access.update_signal(user_id, signal_id, signal_description)
-        if upload_result:
-            db_access.update_signal(user_id, signal_id, signal_description)
-            modify = 'Modify: Pass!'  # u'''Modify: {} times'''.format(modify_n_clicks)
+    if modify_n_clicks != 0:
+        if user_id == "" or signal_id == "":
+            modify = u'''Modify: Fail! Lack of User ID, Signal ID'''
+        elif not re.search('^\d*$', signal_id):
+            modify = u'''Modify: Fail! Invalid signal ID'''
+        elif not db_access.is_signal_exist(user_id, signal_id):
+            modify = u'''Modify: Fail! (User ID, Signal ID) is not exist'''
         else:
-            modify = 'Modify: test and upload fail.'  # u'''Modify: {} times'''.format(modify_n_clicks)
+            upload_result = app_upload.test_and_upload_for_modify(modify_n_clicks, user_id, signal_id, signal_description,
+                                                                  github)
+            # db_access.update_signal(user_id, signal_id, signal_description)
+            if upload_result:
+                db_access.update_signal(user_id, signal_id, signal_description)
+                modify = 'Modify: Pass!'  # u'''Modify: {} times'''.format(modify_n_clicks)
+            else:
+                modify = 'Modify: test and upload fail.'  # u'''Modify: {} times'''.format(modify_n_clicks)
     else:
         modify = 'Modify: 0 times'
     return modify
@@ -297,13 +301,15 @@ def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github)
      State('signal_id-state', 'value')])
 def read_dash(readit_n_clicks,
               user_id, signal_id):
-    if (user_id == "" or signal_id == "") and readit_n_clicks != 0:
-        read = u'''Read: Fail! Lack of User ID or Signal ID'''
-    elif not db_access.is_signal_exist(user_id,
-                                       signal_id) and readit_n_clicks != 0:  # todo: as mentioned in create_dash
-        read = u'''Read: Fail! (User ID, Signal ID) is not exist'''
-    elif readit_n_clicks != 0:
-        read = u'''Read: Pass!'''
+    if readit_n_clicks != 0:
+        if user_id == "" or signal_id == "":
+            read = u'''Read: Fail! Lack of User ID or Signal ID'''
+        elif not re.search('^\d*$', signal_id):
+            read = u'''Create: Fail! Invalid signal ID'''
+        elif not db_access.is_signal_exist(user_id,  signal_id):
+            read = u'''Read: Fail! (User ID, Signal ID) is not exist'''
+        else:
+            read = u'''Read: Pass!'''
     else:
         read = 'Read: 0 times'
     iframe = html.Iframe(
@@ -319,14 +325,16 @@ def read_dash(readit_n_clicks,
      State('signal_id-state', 'value'),
      State('description-state', 'value')])
 def delete_dash(delete_n_clicks, user_id, signal_id, signal_description):
-    if (user_id == "" or signal_id == "") and delete_n_clicks is not None:
-        delete = u'''Delete: Fail! Lack of User ID or Signal ID'''
-    elif not db_access.is_signal_exist(user_id,
-                                       signal_id) and delete_n_clicks is not None:  # todo: as mentioned in create_dash
-        delete = u'''Delete: Fail! (User ID, Signal ID) is not exist'''
-    elif delete_n_clicks is not None:
-        db_access.delete_signal(user_id, signal_id)
-        delete = u'''Delete: Pass!'''
+    if delete_n_clicks is not None:
+        if user_id == "" or signal_id == "":
+            delete = u'''Delete: Fail! Lack of User ID or Signal ID'''
+        elif not re.search('^\d*$', signal_id):
+            delete = u'''Create: Fail! Invalid signal ID'''
+        elif not db_access.is_signal_exist(user_id, signal_id):
+            delete = u'''Delete: Fail! (User ID, Signal ID) is not exist'''
+        else:
+            db_access.delete_signal(user_id, signal_id)
+            delete = u'''Delete: Pass!'''
     else:
         delete = 'Delete: 0 times'
     return delete
