@@ -311,8 +311,8 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
         contents_list = github.split('/')
         raw_link = None
         if "github.com" not in contents_list or 'blob' not in contents_list:
-            print("The provided github link is invalid. ")
             create = "The provided github link is invalid. "
+            return create
         else:
             github_idx = contents_list.index("github.com")
             raw_lists = contents_list[github_idx + 1:]
@@ -328,7 +328,7 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
             print(cp)
         except:
             create = "Download file failed."
-            print("Download file failed.")
+            return create
 
         # 2. testing, we omit this step right now.
 
@@ -347,8 +347,8 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
 
         except:
             create = "Upload to github failed. "
-            print("Didn't upload to github. ")
-            # return False
+            return create
+
 
          # u'''Create: {} times'''.format(create_n_clicks)
     elif create_n_clicks != 0:
