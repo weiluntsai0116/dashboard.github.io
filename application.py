@@ -243,6 +243,7 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, s3):
             create = u'''Create: Fail! Lack of Signal ID'''
         elif s3 is None:
             create = u'''Create: Fail! Lack of S3 filename'''
+        # todo: check if s3 filename duplicate (will cause problem when deleting it if duplicate)
         elif '.csv' not in s3:
             create = u'''Create: Fail! S3 filename format should be *.csv'''
         elif not re.search('^\d*$', signal_id):
@@ -301,11 +302,12 @@ def read_dash(readit_n_clicks,
             s3_filename = db_access.read_signal(user_id, signal_id)
             s3 = boto3.resource(u's3')
             bucket = s3.Bucket(u'user-signal-data')
-            obj = bucket.Object(key=s3_filename)
+            obj = bucket.Object(key=s3_filename)  # todo: exception handling
             response = obj.get()
             lines = response['Body'].read().decode('utf-8').split()
             for row in csv.DictReader(lines):
                 print(row)
+            # todo: plot display
             read = u'''Read: Pass!'''
     else:
         read = 'Read: 0 times'
@@ -333,7 +335,7 @@ def delete_dash(delete_n_clicks, user_id, signal_id, signal_description):
             s3_filename = db_access.read_signal(user_id, signal_id)
             s3 = boto3.resource(u's3')
             bucket = s3.Bucket(u'user-signal-data')
-            bucket.Object(key=s3_filename).delete()
+            bucket.Object(key=s3_filename).delete()  # todo: exception handling
             db_access.delete_signal(user_id, signal_id)
             delete = u'''Delete: Pass!'''
     else:

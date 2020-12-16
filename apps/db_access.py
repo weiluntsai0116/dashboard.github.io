@@ -45,12 +45,14 @@ def get_user_name_by_user_id(user_id):
 
 
 def is_signal_exist(user_id, signal_id):
-    sql = "SELECT * FROM signals.signals where user_id = %s and signal_id = %s"
+    sql = "SELECT * FROM signals.signals where user_id = %s and signal_id = %s"  # todo: remove user_id from here
     val = (user_id, signal_id)
     (mydb, mycursor) = build_connection()
     mycursor.execute(sql, val)
     myresult = mycursor.fetchall()
     mydb.close()
+    # print(user_id)
+    # print(signal_id)
     # print(len(myresult))
     if len(myresult) != 0:
         return True
