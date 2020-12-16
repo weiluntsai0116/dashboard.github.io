@@ -48,9 +48,9 @@ app.layout = html.Div([
         #         width=2),
         dbc.Col(html.Div(["Signal ID: ", dcc.Input(id='signal_id-state', placeholder="0", type='text', value='')]),
                 width=2),
-        dbc.Col(html.Div(
-            ["Signal name: ", dcc.Input(id='signal_name-state', placeholder="SignalName", type='text', value='')]),
-            width=2)
+        # dbc.Col(html.Div(
+        #     ["Signal name: ", dcc.Input(id='signal_name-state', placeholder="SignalName", type='text', value='')]),
+        #     width=2)
     ], justify="center"),
 
     html.Br(),

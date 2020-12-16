@@ -61,7 +61,7 @@ def insert_signal(user_id, signal_id, signal_description, s3):
     sql = "INSERT INTO signals.signals (signal_id, signal_name, signal_description, user_id, s3_filename, datetime) \
     VALUES (%s, %s, %s, %s, %s, %s)"
     dt_string = get_time()
-    val = (signal_id, "signal_name_dummy", signal_description, user_id, s3, dt_string)
+    val = (signal_id, "dummy", signal_description, user_id, s3, dt_string)
     (mydb, mycursor) = build_connection()
     mycursor.execute(sql, val)
     mydb.commit()
