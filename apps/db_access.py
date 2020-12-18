@@ -45,23 +45,25 @@ def get_user_name_by_user_id(user_id):
 
 
 def is_signal_exist(user_id, signal_id):
-    sql = "SELECT * FROM signals.signals where user_id = %s and signal_id = %s"
+    sql = "SELECT * FROM signals.signals where user_id = %s and signal_id = %s"  # todo: remove user_id from here
     val = (user_id, signal_id)
     (mydb, mycursor) = build_connection()
     mycursor.execute(sql, val)
     myresult = mycursor.fetchall()
     mydb.close()
+    # print(user_id)
+    # print(signal_id)
     # print(len(myresult))
     if len(myresult) != 0:
         return True
     return False
 
 
-def insert_signal(user_id, signal_id, signal_description):
-    sql = "INSERT INTO signals.signals (signal_id, signal_name, signal_description, user_id, datetime) \
-    VALUES (%s, %s, %s, %s, %s)"
+def insert_signal(user_id, signal_id, signal_description, s3):
+    sql = "INSERT INTO signals.signals (signal_id, signal_name, signal_description, user_id, s3_filename, datetime) \
+    VALUES (%s, %s, %s, %s, %s, %s)"
     dt_string = get_time()
-    val = (signal_id, "signal_name_dummy", signal_description, user_id, dt_string)
+    val = (signal_id, "dummy", signal_description, user_id, s3, dt_string)
     (mydb, mycursor) = build_connection()
     mycursor.execute(sql, val)
     mydb.commit()
@@ -70,16 +72,31 @@ def insert_signal(user_id, signal_id, signal_description):
     print(mycursor.rowcount, "record inserted.")
 
 
-def update_signal(user_id, signal_id, signal_description):
-    sql = "UPDATE signals.signals SET signal_description = %s, datetime = %s where user_id = %s and signal_id =%s"
-    dt_string = get_time()
-    val = (signal_description, dt_string, user_id, signal_id)
+def update_signal(user_id, signal_id, signal_description, s3):
+    if s3 == "":
+        sql = "UPDATE signals.signals SET signal_description = %s, datetime = %s where user_id = %s and signal_id =%s"
+        val = (signal_description, get_time(), user_id, signal_id)
+    else:
+        sql = "UPDATE signals.signals SET signal_description = %s, s3_filename = %s, datetime = %s where user_id = %s " \
+              "and signal_id =%s "
+        val = (signal_description, s3, get_time(), user_id, signal_id)
+
     (mydb, mycursor) = build_connection()
     mycursor.execute(sql, val)
     mydb.commit()
     mydb.close()
     print(sql, val)
     print(mycursor.rowcount, "record updated")
+
+
+def read_signal(user_id, signal_id):
+    sql = "SELECT * FROM signals.signals where user_id = %s and signal_id = %s"
+    val = (user_id, signal_id)
+    (mydb, mycursor) = build_connection()
+    mycursor.execute(sql, val)
+    myresult = mycursor.fetchall()
+    mydb.close()
+    return myresult[0][4]
 
 
 def delete_signal(user_id, signal_id):

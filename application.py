@@ -8,6 +8,8 @@ from pandas import DataFrame
 from datetime import datetime
 import flask
 import re
+import csv
+import boto3
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -46,18 +48,18 @@ app.layout = html.Div([
         #         width=2),
         dbc.Col(html.Div(["Signal ID: ", dcc.Input(id='signal_id-state', placeholder="0", type='text', value='')]),
                 width=2),
-        dbc.Col(html.Div(
-            ["Signal name: ", dcc.Input(id='signal_name-state', placeholder="SignalName", type='text', value='')]),
-            width=2)
+        # dbc.Col(html.Div(
+        #     ["Signal name: ", dcc.Input(id='signal_name-state', placeholder="SignalName", type='text', value='')]),
+        #     width=2)
     ], justify="center"),
 
     html.Br(),
     dbc.Row([
         dbc.InputGroup(
             [
-                dbc.InputGroupAddon("GitHub link", addon_type="prepend"),
-                dbc.Input(id='github-state',
-                          placeholder="https://weiluntsai0116.github.io/dashboard.github.io/user0_signal0.html"),
+                dbc.InputGroupAddon("S3 filename", addon_type="prepend"),
+                dbc.Input(id='s3-state',
+                          placeholder="the-mysterious-data.csv"),
             ],
             className="mb-3", style={'width': 800, 'align': 'center'}
         )
@@ -88,7 +90,7 @@ app.layout = html.Div([
     dbc.Row([
         dbc.Col(html.Div(id='signalid-output'), width=2),
         dbc.Col(html.Div(id='description-output', style={'whiteSpace': 'pre-line'}), width=2),
-        dbc.Col(html.Div(id='github-output', style={'whiteSpace': 'pre-line'}), width=2),
+        dbc.Col(html.Div(id='s3-output', style={'whiteSpace': 'pre-line'}), width=2),
     ], justify="center"),
 
     html.Br(),
@@ -210,7 +212,7 @@ def delete_confirm(n_clicks):
 @app.callback([
                Output('signalid-output', 'children'),
                Output('description-output', 'children'),
-               Output('github-output', 'children')],
+               Output('s3-output', 'children')],
               [Input('delete-confirm', 'submit_n_clicks'),
                Input('modify-button', 'n_clicks'),
                Input('create-button', 'n_clicks'),
@@ -218,14 +220,14 @@ def delete_confirm(n_clicks):
               [State('user_id-state', 'children'),
                State('signal_id-state', 'value'),
                State('description-state', 'value'),
-               State('github-state', 'value')])
+               State('s3-state', 'value')])
 def info_disp(delete_n_clicks, modify_n_clicks, create_n_clicks, readit_n_clicks,
-              user_id, signal_id, description, github):
+              user_id, signal_id, description, s3):
     user_id = u'''User ID   : {}'''.format(user_id)
     signal_id = u'''Signal ID: {}'''.format(signal_id)
     description = u'''Description: {}'''.format(description)
-    github = u'''Github link: {}'''.format(github)
-    return signal_id, description, github
+    s3 = u'''S3 link: {}'''.format(s3)
+    return signal_id, description, s3
 
 
 @app.callback(
@@ -234,35 +236,23 @@ def info_disp(delete_n_clicks, modify_n_clicks, create_n_clicks, readit_n_clicks
     [State('user_id-state', 'children'),
      State('signal_id-state', 'value'),
      State('description-state', 'value'),
-     State('github-state', 'value')])
-def create_dash(create_n_clicks, user_id, signal_id, signal_description, github):
+     State('s3-state', 'value')])
+def create_dash(create_n_clicks, user_id, signal_id, signal_description, s3):
     if create_n_clicks != 0:
         if user_id == "" or signal_id == "":
             create = u'''Create: Fail! Lack of Signal ID'''
-        elif github is None:
-            create = u'''Create: Fail! Lack of GitHub link'''
+        elif s3 is None:
+            create = u'''Create: Fail! Lack of S3 filename'''
+        # todo: check if s3 filename duplicate (will cause problem when deleting it if duplicate)
+        elif '.csv' not in s3:
+            create = u'''Create: Fail! S3 filename format should be *.csv'''
         elif not re.search('^\d*$', signal_id):
             create = u'''Create: Fail! Invalid signal ID'''
         elif db_access.is_signal_exist(user_id, signal_id):
             create = u'''Create: Fail! (User ID, Signal ID) is 'duplicate'''
         else:
-            # -----------------------------------------------------------------------------
-            # todo for Eric: Please insert your function call here. parameter you may need: user_id, signal_id, github.
-            #                1. User's github link: {github}
-            #                2. The naming format of the new html file should be:
-            #                https://weiluntsai0116.github.io/dashboard.github.io/user{user_id}_signal{signal_id}.html
-            #                3. Please test if it works by:
-            #                   0) imagine you're an user.
-            #                     - Use the dashcode template (.py) you wrote
-            #                     - Generate .html
-            #                     - Upload .html you wrote to your github.
-            #                   1) create a new signal: fill out User ID, Signal ID, Github link, and press the Create button
-            #                   2) wait for a while (DB update, html upload)
-            #                   3) read back the signal: fill out the same User ID, Signal ID, and press the Read button
-            #                   4) If the figure you expected appear below, then you complete the integration
-            #                4. deployment error: 99% from the requirements.txt
-            # -----------------------------------------------------------------------------
-            create = app_upload.test_and_upload_for_create(create_n_clicks, user_id, signal_id, signal_description, github)
+            db_access.insert_signal(user_id, signal_id, signal_description, s3)
+            create = 'Create: Pass!'
     else:
         create = 'Create: 0 times'
     return create
@@ -274,24 +264,20 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, github)
     [State('user_id-state', 'children'),
      State('signal_id-state', 'value'),
      State('description-state', 'value'),
-     State('github-state', 'value')])
-def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, github):
+     State('s3-state', 'value')])
+def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, s3):
     if modify_n_clicks != 0:
         if user_id == "" or signal_id == "":
             modify = u'''Modify: Fail! Lack of User ID, Signal ID'''
+        elif s3 != "" and ('.csv' not in s3):
+            modify = u'''Create: Fail! S3 filename format should be *.csv'''
         elif not re.search('^\d*$', signal_id):
             modify = u'''Modify: Fail! Invalid signal ID'''
         elif not db_access.is_signal_exist(user_id, signal_id):
             modify = u'''Modify: Fail! (User ID, Signal ID) is not exist'''
         else:
-            upload_result = app_upload.test_and_upload_for_modify(modify_n_clicks, user_id, signal_id, signal_description,
-                                                                  github)
-            # db_access.update_signal(user_id, signal_id, signal_description)
-            if upload_result:
-                db_access.update_signal(user_id, signal_id, signal_description)
-                modify = 'Modify: Pass!'  # u'''Modify: {} times'''.format(modify_n_clicks)
-            else:
-                modify = 'Modify: test and upload fail.'  # u'''Modify: {} times'''.format(modify_n_clicks)
+            db_access.update_signal(user_id, signal_id, signal_description, s3)
+            modify = 'Modify: Pass!'  # u'''Modify: {} times'''.format(modify_n_clicks)
     else:
         modify = 'Modify: 0 times'
     return modify
@@ -310,9 +296,18 @@ def read_dash(readit_n_clicks,
             read = u'''Read: Fail! Lack of User ID or Signal ID'''
         elif not re.search('^\d*$', signal_id):
             read = u'''Create: Fail! Invalid signal ID'''
-        elif not db_access.is_signal_exist(user_id,  signal_id):
+        elif not db_access.is_signal_exist(user_id, signal_id):
             read = u'''Read: Fail! (User ID, Signal ID) is not exist'''
         else:
+            s3_filename = db_access.read_signal(user_id, signal_id)
+            s3 = boto3.resource(u's3')
+            bucket = s3.Bucket(u'user-signal-data')
+            obj = bucket.Object(key=s3_filename)  # todo: exception handling
+            response = obj.get()
+            lines = response['Body'].read().decode('utf-8').split()
+            for row in csv.DictReader(lines):
+                print(row)
+            # todo: plot display
             read = u'''Read: Pass!'''
     else:
         read = 'Read: 0 times'
@@ -337,6 +332,10 @@ def delete_dash(delete_n_clicks, user_id, signal_id, signal_description):
         elif not db_access.is_signal_exist(user_id, signal_id):
             delete = u'''Delete: Fail! (User ID, Signal ID) is not exist'''
         else:
+            s3_filename = db_access.read_signal(user_id, signal_id)
+            s3 = boto3.resource(u's3')
+            bucket = s3.Bucket(u'user-signal-data')
+            bucket.Object(key=s3_filename).delete()  # todo: exception handling
             db_access.delete_signal(user_id, signal_id)
             delete = u'''Delete: Pass!'''
     else:
