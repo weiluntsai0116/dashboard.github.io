@@ -20,6 +20,7 @@ from cryptography.fernet import Fernet, InvalidToken  # new
 import apps.db_access as db_access
 import apps.test_and_upload as app_upload
 import apps.security as security
+import plotly.express as px
 
 redirect_page = security.login_page_url
 
@@ -124,7 +125,8 @@ app.layout = html.Div([
 
     html.Br(),
     dbc.Row([
-        html.Div(id='dash-output')
+        html.Div(id='dash-output'),
+
     ], justify="center"),
 
     # session div for global vars. meant to be hidden.
@@ -291,6 +293,8 @@ def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, s3):
      State('signal_id-state', 'value')])
 def read_dash(readit_n_clicks,
               user_id, signal_id):
+
+    s3_df, cols = None, None
     if readit_n_clicks != 0:
         if user_id == "" or signal_id == "":
             read = u'''Read: Fail! Lack of User ID or Signal ID'''
@@ -299,22 +303,56 @@ def read_dash(readit_n_clicks,
         elif not db_access.is_signal_exist(user_id, signal_id):
             read = u'''Read: Fail! (User ID, Signal ID) is not exist'''
         else:
+            print(user_id)
+            print(signal_id)
+
             s3_filename = db_access.read_signal(user_id, signal_id)
+            print(s3_filename)
+
             s3 = boto3.resource(u's3')
             bucket = s3.Bucket(u'user-signal-data')
-            obj = bucket.Object(key=s3_filename)  # todo: exception handling
+            # comment: if we read file name directly from db, then it shouldn't have any exception
+            # otherwise something wrong when we store the data to s3 and db. 
+            obj = bucket.Object(key=s3_filename) # todo: handle exception 
             response = obj.get()
             lines = response['Body'].read().decode('utf-8').split()
             for row in csv.DictReader(lines):
                 print(row)
+
             # todo: plot display
-            read = u'''Read: Pass!'''
+            s3_df = pd.read_csv(response['Body'])
+            # s3_df = pd.read_csv(s3_filename[1:], sep='\t')
+            cols = list(s3_df.columns)
+
+            if len(cols) < 2:
+                read = "Data has less than 2 columns "
+            else:
+                read = u'''Read: Pass!'''
     else:
         read = 'Read: 0 times'
     iframe = html.Iframe(
         src=f'https://weiluntsai0116.github.io/dashboard.github.io/user{user_id}_signal{signal_id}.html',
         height=500, width=1000)
-    return read, iframe
+
+    if read != u'''Read: Pass!''':
+        return read, None
+
+    # this fig must be plot outside otherwise it won't show
+    fig = px.line(s3_df, x=cols[0], y=cols[1])
+    fig.update_xaxes(
+        rangeslider_visible=True,
+        rangeselector=dict(
+            buttons=list([
+                dict(count=1, label="1m", step="month", stepmode="backward"),
+                dict(count=6, label="6m", step="month", stepmode="backward"),
+                dict(count=1, label="YTD", step="year", stepmode="todate"),
+                dict(count=1, label="1y", step="year", stepmode="backward"),
+                dict(step="all")
+            ])
+        )
+    )
+
+    return read, html.Div(dcc.Graph(figure=fig))
 
 
 @app.callback(
