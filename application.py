@@ -380,7 +380,7 @@ def delete_dash(delete_n_clicks, user_id, signal_id, signal_description):
             db_access.delete_signal(user_id, signal_id)
             delete = u'''Delete: Pass!'''
     else:
-        delete = 'Delete: 0 times'
+        delete = u'''Delete: 0 times : delete_n_clicks = {}'''.formst(delete_n_clicks)
     return delete
 
 
