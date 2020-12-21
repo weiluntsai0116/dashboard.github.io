@@ -21,6 +21,7 @@ import apps.db_access as db_access
 import apps.test_and_upload as app_upload
 import apps.security as security
 import plotly.express as px
+from io import StringIO
 
 redirect_page = security.login_page_url
 
@@ -309,19 +310,21 @@ def read_dash(readit_n_clicks,
             s3_filename = db_access.read_signal(user_id, signal_id)
             print(s3_filename)
 
-            s3 = boto3.resource(u's3')
-            bucket = s3.Bucket(u'user-signal-data')
-            # comment: if we read file name directly from db, then it shouldn't have any exception
-            # otherwise something wrong when we store the data to s3 and db. 
-            obj = bucket.Object(key=s3_filename) # todo: handle exception 
-            response = obj.get()
-            lines = response['Body'].read().decode('utf-8').split()
-            for row in csv.DictReader(lines):
-                print(row)
+            aws_id = os.environ['AWS_ID']
+            aws_secret = os.environ['AWS_SECRET']
+            client = boto3.client('s3', aws_access_key_id=aws_id,
+                                  aws_secret_access_key=aws_secret)
 
-            # todo: plot display
-            s3_df = pd.read_csv(response['Body'])
-            # s3_df = pd.read_csv(s3_filename[1:], sep='\t')
+            csv_obj = client.get_object(Bucket='user-signal-data', Key=s3_filename)
+            body = csv_obj['Body']
+            csv_string = body.read().decode('utf-8')
+            s3_df = pd.read_csv(StringIO(csv_string))
+
+            # for local test :
+            #s3_df = pd.read_csv(s3_filename)
+
+            print(s3_filename)
+            print(s3_df)
             cols = list(s3_df.columns)
 
             if len(cols) < 2:
