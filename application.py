@@ -371,10 +371,13 @@ def delete_dash(delete_n_clicks, user_id, signal_id, signal_description):
             delete = u'''Delete: Fail! (User ID, Signal ID) is not exist'''
         else:
             s3_filename = db_access.read_signal(user_id, signal_id)
-            s3 = boto3.resource(u's3')
-            bucket = s3.Bucket(u'user-signal-data')
-            bucket.Object(key=s3_filename).delete()  # todo: exception handling
             db_access.delete_signal(user_id, signal_id)
+            myresult = db_access.is_csv_needed(s3_filename)
+            if not myresult:
+                s3 = boto3.resource(u's3')
+                bucket = s3.Bucket(u'user-signal-data')
+                bucket.Object(key=s3_filename).delete()
+            # print("myresult =", myresult)
             delete = u'''Delete: Pass!'''
     else:
         delete = u'''Delete: 0 times : delete_n_clicks = {}'''.format(delete_n_clicks)

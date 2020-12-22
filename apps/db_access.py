@@ -44,6 +44,19 @@ def get_user_name_by_user_id(user_id):
     return myresult[0][1]
 
 
+def is_csv_needed(s3_filename):
+    sql = u'''SELECT * FROM signals.signals where s3_filename = \'{}\''''.format(s3_filename)
+    (mydb, mycursor) = build_connection()
+    mycursor.execute(sql)
+    myresult = mycursor.fetchall()
+    mydb.close()
+    print(s3_filename)
+    print(myresult)
+    if len(myresult) != 0:
+        return True
+    return False
+
+
 def is_signal_exist(user_id, signal_id):
     sql = "SELECT * FROM signals.signals where user_id = %s and signal_id = %s"  # todo: remove user_id from here
     val = (user_id, signal_id)
