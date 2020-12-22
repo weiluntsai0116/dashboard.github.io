@@ -333,14 +333,14 @@ def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, s3):
     if modify_n_clicks != 0:
         if user_id == "" or signal_id == "":
             modify = u'''Modify: Fail! Lack of User ID, Signal ID'''
-        elif s3 is not None and ('.csv' not in s3):
+        elif s3 is not None and s3 != "" and ('.csv' not in s3):
             modify = u'''Create: Fail! S3 filename format should be *.csv'''
         elif not re.search('^\d*$', signal_id):
             modify = u'''Modify: Fail! Invalid signal ID'''
         elif not db_access.is_signal_exist(user_id, signal_id):
             modify = u'''Modify: Fail! (User ID, Signal ID) is not exist'''
         else:
-            if s3 is not None:
+            if s3 is not None and s3 != "":
                 try:
                     aws_id = os.environ['AWS_ID']
                     aws_secret = os.environ['AWS_SECRET']
