@@ -306,15 +306,17 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, s3):
             elif db_access.is_signal_exist(user_id, signal_id):
                 create = u'''Create: Fail! (User ID, Signal ID) is 'duplicate'''
             else:
-                s3_rsc = boto3.resource(u's3')
-                bucket = s3_rsc.Bucket(u'user-signal-data')
-                obj = bucket.Object(key=s3)
                 try:
-                    obj.load()
+                    aws_id = os.environ['AWS_ID']
+                    aws_secret = os.environ['AWS_SECRET']
+                    client = boto3.client('s3', aws_access_key_id=aws_id,
+                                          aws_secret_access_key=aws_secret)
+
+                    csv_obj = client.get_object(Bucket='user-signal-data', Key=s3)
                     db_access.insert_signal(user_id, signal_id, signal_description, s3)
                     create = 'Create: Pass!'
                 except Exception as e:
-                    create = u'''Create: Fail! S3 file {} not exist: {}'''.format(s3, e)
+                    create = u'''Create: Fail! S3 file \"{}\" is not exist: {}'''.format(s3, e)
     else:
         create = 'Create: 0 times'
     return create
@@ -338,8 +340,21 @@ def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, s3):
         elif not db_access.is_signal_exist(user_id, signal_id):
             modify = u'''Modify: Fail! (User ID, Signal ID) is not exist'''
         else:
-            db_access.update_signal(user_id, signal_id, signal_description, s3)
-            modify = 'Modify: Pass!'  # u'''Modify: {} times'''.format(modify_n_clicks)
+            if s3 is not None:
+                try:
+                    aws_id = os.environ['AWS_ID']
+                    aws_secret = os.environ['AWS_SECRET']
+                    client = boto3.client('s3', aws_access_key_id=aws_id,
+                                          aws_secret_access_key=aws_secret)
+
+                    csv_obj = client.get_object(Bucket='user-signal-data', Key=s3)
+                    db_access.update_signal(user_id, signal_id, signal_description, s3)
+                    modify = 'Modify: Pass!'  # u'''Modify: {} times'''.format(modify_n_clicks)
+                except Exception as e:
+                    modify = u'''Create: Fail! S3 file \"{}\" is not exist: {}'''.format(s3, e)
+            else:
+                db_access.update_signal(user_id, signal_id, signal_description, s3)
+                modify = 'Modify: Pass!'  # u'''Modify: {} times'''.format(modify_n_clicks)
     else:
         modify = 'Modify: 0 times'
     return modify
