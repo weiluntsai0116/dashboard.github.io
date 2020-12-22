@@ -381,7 +381,7 @@ def delete_dash(delete_n_clicks, user_id, signal_id, signal_description):
             # print("myresult =", myresult)
             delete = u'''Delete: Pass!'''
     else:
-        delete = u'''Delete: 0 times : delete_n_clicks = {}'''.format(delete_n_clicks)
+        delete = u'''Delete: 0 times'''
     return delete
 
 
