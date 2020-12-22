@@ -61,7 +61,7 @@ app.layout = html.Div([
             [
                 dbc.InputGroupAddon("S3 filename", addon_type="prepend"),
                 dbc.Input(id='s3-state',
-                          placeholder="the-mysterious-data.csv"),
+                          placeholder="your-signal-data.csv"),
             ],
             className="mb-3", style={'width': 800, 'align': 'center'}
         )
@@ -70,7 +70,7 @@ app.layout = html.Div([
         dbc.InputGroup(
             [
                 dbc.InputGroupAddon("Description", addon_type="prepend"),
-                dbc.Textarea(id='description-state', placeholder="Any comments?")
+                dbc.Textarea(id='description-state', placeholder="signal name or any comments")
             ],
             className="mb-3", style={'width': 800, 'align': 'center'}
         )
