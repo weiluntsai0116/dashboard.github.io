@@ -23,11 +23,9 @@ import apps.security as security
 import plotly.express as px
 from io import StringIO
 
-
 external_stylesheets = [dbc.themes.BOOTSTRAP]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 application = app.server
-
 
 app.title = 'Dashboard Page'
 app.layout = html.Div([
@@ -47,7 +45,8 @@ app.layout = html.Div([
         dbc.Col(html.Div(id='username-output'), width=2),
         # dbc.Col(html.Div(["User ID:   ", dcc.Input(id='user_id-state', placeholder="0", type='text', value='')]),
         #         width=2),
-        dbc.Col(html.Div(["Signal ID: (Read/Modify/Delete only)", dcc.Input(id='signal_id-state', placeholder="0", type='text', value='')]),
+        dbc.Col(html.Div(["Signal ID: (Read/Modify/Delete only)",
+                          dcc.Input(id='signal_id-state', placeholder="0", type='text', value='')]),
                 width=2),
         # dbc.Col(html.Div(
         #     ["Signal name: ", dcc.Input(id='signal_name-state', placeholder="SignalName", type='text', value='')]),
@@ -235,10 +234,13 @@ def check_token(pathname):
 
             if payload["role"] not in {"support", "ip"}:
                 print("exception 2")
-                return dcc.Location(href=security.login_url, id="any"), "", ""  # ["Permission Denied", 403] # ["Not authenticated", 400]
+                return dcc.Location(href=security.login_url,
+                                    id="any"), "", ""  # ["Permission Denied", 403] # ["Not authenticated", 400]
             else:
-                print("user_id = ", payload['user_id'], u'''User ID: {} User Name: '''.format(payload['user_id']), db_access.get_user_name_by_user_id(payload['user_id']))
-                return "", payload['user_id'], u'''User Name: {}'''.format(db_access.get_user_name_by_user_id(payload['user_id']))  # everything's good
+                print("user_id = ", payload['user_id'], u'''User ID: {} User Name: '''.format(payload['user_id']),
+                      db_access.get_user_name_by_user_id(payload['user_id']))
+                return "", payload['user_id'], u'''User Name: {}'''.format(
+                    db_access.get_user_name_by_user_id(payload['user_id']))  # everything's good
         except (jwt.DecodeError, jwt.ExpiredSignatureError):
             print("exception 3")
             return dcc.Location(href=security.login_url, id="any"), "", ""  # ["Token is invalid", 401]
@@ -261,17 +263,17 @@ def delete_confirm(n_clicks):
 
 
 @app.callback([
-               Output('signalid-output', 'children'),
-               Output('description-output', 'children'),
-               Output('s3-output', 'children')],
-              [Input('delete-confirm', 'submit_n_clicks'),
-               Input('modify-button', 'n_clicks'),
-               Input('create-button', 'n_clicks'),
-               Input('readit-button', 'n_clicks')],
-              [State('user_id-state', 'children'),
-               State('signal_id-state', 'value'),
-               State('description-state', 'value'),
-               State('s3-state', 'value')])
+    Output('signalid-output', 'children'),
+    Output('description-output', 'children'),
+    Output('s3-output', 'children')],
+    [Input('delete-confirm', 'submit_n_clicks'),
+     Input('modify-button', 'n_clicks'),
+     Input('create-button', 'n_clicks'),
+     Input('readit-button', 'n_clicks')],
+    [State('user_id-state', 'children'),
+     State('signal_id-state', 'value'),
+     State('description-state', 'value'),
+     State('s3-state', 'value')])
 def info_disp(delete_n_clicks, modify_n_clicks, create_n_clicks, readit_n_clicks,
               user_id, signal_id, description, s3):
     user_id = u'''User ID   : {}'''.format(user_id)
@@ -304,8 +306,15 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, s3):
             elif db_access.is_signal_exist(user_id, signal_id):
                 create = u'''Create: Fail! (User ID, Signal ID) is 'duplicate'''
             else:
-                db_access.insert_signal(user_id, signal_id, signal_description, s3)
-                create = 'Create: Pass!'
+                s3_rsc = boto3.resource(u's3')
+                bucket = s3_rsc.Bucket(u'user-signal-data')
+                obj = bucket.Object(key=s3)
+                try:
+                    obj.load()
+                    db_access.insert_signal(user_id, signal_id, signal_description, s3)
+                    create = 'Create: Pass!'
+                except:
+                    create = 'Create: Fail! S3 file not exist'
     else:
         create = 'Create: 0 times'
     return create
@@ -368,7 +377,7 @@ def read_dash(readit_n_clicks,
             s3_df = pd.read_csv(StringIO(csv_string))
 
             # for local test :
-            #s3_df = pd.read_csv(s3_filename)
+            # s3_df = pd.read_csv(s3_filename)
 
             print("s3_df = ", s3_df)
             cols = list(s3_df.columns)
@@ -423,8 +432,8 @@ def delete_dash(delete_n_clicks, user_id, signal_id, signal_description):
             db_access.delete_signal(user_id, signal_id)
             myresult = db_access.is_csv_needed(s3_filename)
             if not myresult:
-                s3 = boto3.resource(u's3')
-                bucket = s3.Bucket(u'user-signal-data')
+                s3_rsc = boto3.resource(u's3')
+                bucket = s3_rsc.Bucket(u'user-signal-data')
                 bucket.Object(key=s3_filename).delete()
             # print("myresult =", myresult)
             delete = u'''Delete: Pass!'''
