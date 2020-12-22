@@ -290,22 +290,22 @@ def info_disp(delete_n_clicks, modify_n_clicks, create_n_clicks, readit_n_clicks
      State('s3-state', 'value')])
 def create_dash(create_n_clicks, user_id, signal_id, signal_description, s3):
     if create_n_clicks != 0:
-        signal_id_list = db_access.get_all_signal_id()
-        signal_id = db_access.first_missing_positive(signal_id_list)
-        if user_id == "" or signal_id == "":
-            create = u'''Create: Fail! Lack of Signal ID'''
-        elif s3 is None:
+        if s3 is None:
             create = u'''Create: Fail! Lack of S3 filename'''
-        # todo: check if s3 filename duplicate (will cause problem when deleting it if duplicate)
         elif '.csv' not in s3:
             create = u'''Create: Fail! S3 filename format should be *.csv'''
-        elif type(signal_id) != int:
-            create = u'''Create: Fail! Invalid signal ID'''
-        elif db_access.is_signal_exist(user_id, signal_id):
-            create = u'''Create: Fail! (User ID, Signal ID) is 'duplicate'''
         else:
-            db_access.insert_signal(user_id, signal_id, signal_description, s3)
-            create = 'Create: Pass!'
+            signal_id_list = db_access.get_all_signal_id()
+            signal_id = db_access.first_missing_positive(signal_id_list)
+            if user_id == "" or signal_id == "":
+                create = u'''Create: Fail! Lack of Signal ID'''
+            elif type(signal_id) != int:
+                create = u'''Create: Fail! Invalid signal ID'''
+            elif db_access.is_signal_exist(user_id, signal_id):
+                create = u'''Create: Fail! (User ID, Signal ID) is 'duplicate'''
+            else:
+                db_access.insert_signal(user_id, signal_id, signal_description, s3)
+                create = 'Create: Pass!'
     else:
         create = 'Create: 0 times'
     return create
@@ -322,7 +322,7 @@ def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, s3):
     if modify_n_clicks != 0:
         if user_id == "" or signal_id == "":
             modify = u'''Modify: Fail! Lack of User ID, Signal ID'''
-        elif s3 != "" and ('.csv' not in s3):
+        elif (s3 is not None) and ('.csv' not in s3):
             modify = u'''Create: Fail! S3 filename format should be *.csv'''
         elif not re.search('^\d*$', signal_id):
             modify = u'''Modify: Fail! Invalid signal ID'''
