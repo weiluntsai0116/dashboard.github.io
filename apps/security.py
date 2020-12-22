@@ -1,6 +1,8 @@
 import os
 
-login_page_url = "http://user-service-dash.eba-y82cxuwr.us-east-2.elasticbeanstalk.com/"
+login_url = "http://user-service-dash.eba-y82cxuwr.us-east-2.elasticbeanstalk.com/"
+catalog_url = "http://signaldevv20-env.eba-2ibxmk54.us-east-2.elasticbeanstalk.com/"
+alert_url = "http://signaldevv20-env.eba-2ibxmk54.us-east-2.elasticbeanstalk.com/"  # todo: url to be changed
 
 jwt_secret = os.environ['JWT_SECRET']
 jwt_algo = os.environ['JWT_ALGO']

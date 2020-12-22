@@ -23,7 +23,6 @@ import apps.security as security
 import plotly.express as px
 from io import StringIO
 
-redirect_page = security.login_page_url
 
 external_stylesheets = [dbc.themes.BOOTSTRAP]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
@@ -33,7 +32,7 @@ application = app.server
 app.title = 'Dashboard Page'
 app.layout = html.Div([
 
-    dcc.Location(id='dashboard_service_url', refresh=False),
+    dcc.Location(id='dashboard_url', refresh=False),
     html.Div(id='error_redirect_page'),
 
     html.H3(
@@ -130,23 +129,72 @@ app.layout = html.Div([
 
     ], justify="center"),
 
+    dbc.Row([
+        dbc.Col(dbc.Button("Login Page", color="info", className="mr-1", id='button_login', n_clicks=0), width=2),
+        dbc.Col(dbc.Button('Catalog Page', color="info", className="mr-1", id='button_catalog', n_clicks=0), width=2),
+        dbc.Col(dbc.Button("Alert Page", color="info", className="mr-1", id='button_alert', n_clicks=0), width=2),
+    ], justify="center"),
+
+    # html.Button('Login Page', id='button_login', n_clicks=0),
+    # html.Button('Catalog Page', id='button_catalog', n_clicks=0),
+    # html.Button('Alert Page', id='button_alert', n_clicks=0),
+    html.Div(id='login_redirect'),
+    html.Div(id='catalog_redirect'),
+    html.Div(id='alert_redirect'),
+
     # session div for global vars. meant to be hidden.
     html.Div(id='user_id-state'),
     # html.Div(id='test_out'),
 ])
 
 
+@app.callback(Output('login_redirect', 'children'),
+              Input('button_login', 'n_clicks'),
+              Input('dashboard_url', 'href'))
+def login_redirect(click, pathname):
+    path_info = pathname.split("?token=")
+    if len(path_info) != 2:
+        return dcc.Location(href=security.login_url, id="any")
+    if click != 0:
+        signed_token = path_info[1]
+        return dcc.Location(href=f"{security.login_url}?token={signed_token}", id="any")
+
+
+@app.callback(Output('catalog_redirect', 'children'),
+              Input('button_catalog', 'n_clicks'),
+              Input('dashboard_url', 'href'))
+def catalog_redirect(click, pathname):
+    path_info = pathname.split("?token=")
+    if len(path_info) != 2:
+        return dcc.Location(href=security.login_url, id="any")
+    if click != 0:
+        signed_token = path_info[1]
+        return dcc.Location(href=f"{security.catalog_url}?token={signed_token}", id="any")
+
+
+@app.callback(Output('alert_redirect', 'children'),
+              Input('button_alert', 'n_clicks'),
+              Input('dashboard_url', 'href'))
+def alert_redirect(click, pathname):
+    path_info = pathname.split("?token=")
+    if len(path_info) != 2:
+        return dcc.Location(href=security.login_url, id="any")
+    if click != 0:
+        signed_token = path_info[1]
+        return dcc.Location(href=f"{security.alert_url}?token={signed_token}", id="any")
+
+
 @app.callback(Output('error_redirect_page', 'children'),
               Output('user_id-state', 'children'),
               Output('username-output', 'children'),
-              [Input('dashboard_service_url', 'href')])
+              [Input('dashboard_url', 'href')])
 def check_token(pathname):
     # URL format: http://xxx/xxxx?token=iamatoken
 
     path_info = pathname.split("?token=")
     print("pathname = ", pathname, "path_info = ", path_info)
     if len(path_info) != 2:  # check if token exist
-        return dcc.Location(href=redirect_page, id="any"), "", ""
+        return dcc.Location(href=security.login_url, id="any"), "", ""
 
     signed_token = path_info[1]
 
@@ -168,7 +216,7 @@ def check_token(pathname):
             jwt_token = f.decrypt(signed_token.encode("utf-8")).decode("utf-8")
         except (InvalidToken, TypeError):
             print("exception 1: ", InvalidToken, "; fernet_secret: ", security.fernet_secret)
-            return dcc.Location(href=redirect_page, id="any"), "", ""
+            return dcc.Location(href=security.login_url, id="any"), "", ""
         # print("jwt_token = ", jwt_token)
         # flask.session['token'] = jwt_token
         # print("session token = ", flask.session['token'])
@@ -187,14 +235,14 @@ def check_token(pathname):
 
             if payload["role"] not in {"support", "ip"}:
                 print("exception 2")
-                return dcc.Location(href=redirect_page, id="any"), "", ""  # ["Permission Denied", 403] # ["Not authenticated", 400]
+                return dcc.Location(href=security.login_url, id="any"), "", ""  # ["Permission Denied", 403] # ["Not authenticated", 400]
             else:
                 print("user_id = ", payload['user_id'], u'''User ID: {} User Name: '''.format(payload['user_id']), db_access.get_user_name_by_user_id(payload['user_id']))
                 return "", payload['user_id'], u'''User Name: {}'''.format(db_access.get_user_name_by_user_id(payload['user_id']))  # everything's good
         except (jwt.DecodeError, jwt.ExpiredSignatureError):
             print("exception 3")
-            return dcc.Location(href=redirect_page, id="any"), "", ""  # ["Token is invalid", 401]
-        return dcc.Location(href=redirect_page, id="any"), "", ""  # something unexpected happened
+            return dcc.Location(href=security.login_url, id="any"), "", ""  # ["Token is invalid", 401]
+        return dcc.Location(href=security.login_url, id="any"), "", ""  # something unexpected happened
 
 
 # @app.callback(Output('test_out', 'children'),
