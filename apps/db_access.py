@@ -6,7 +6,6 @@ from sqlalchemy import create_engine
 from pandas import DataFrame
 from datetime import datetime
 
-
 c_info = {
     "host": os.getenv('USER_SERVICE_HOST'),
     "user": os.getenv('USER_SERVICE_USER'),
@@ -73,6 +72,9 @@ def is_csv_needed(s3_filename):
 def first_missing_positive(nums):
     n = len(nums)
 
+    if 0 not in nums:
+        return 0
+
     if 1 not in nums:
         return 1
 
@@ -96,16 +98,17 @@ def first_missing_positive(nums):
 
     return n + 1
 
+
 def is_signal_exist(user_id, signal_id):
-    sql = "SELECT * FROM signals.signals where user_id = %s and signal_id = %s"  # todo: remove user_id from here
+    sql = "SELECT * FROM signals.signals where user_id = %s and signal_id = %s"
     val = (user_id, signal_id)
     (mydb, mycursor) = build_connection()
     mycursor.execute(sql, val)
     myresult = mycursor.fetchall()
     mydb.close()
-    # print(user_id)
-    # print(signal_id)
-    # print(len(myresult))
+    print(user_id)
+    print(signal_id)
+    print(len(myresult))
     if len(myresult) != 0:
         return True
     return False
