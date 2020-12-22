@@ -125,10 +125,12 @@ def insert_signal(user_id, signal_id, signal_description, s3):
 
 
 def update_signal(user_id, signal_id, signal_description, s3):
-    if s3 == "":
+    if s3 is None:
+        print("s3 is not updated")
         sql = "UPDATE signals.signals SET signal_description = %s, datetime = %s where user_id = %s and signal_id =%s"
         val = (signal_description, get_time(), user_id, signal_id)
     else:
+        print("s3 is updated")
         sql = "UPDATE signals.signals SET signal_description = %s, s3_filename = %s, datetime = %s where user_id = %s " \
               "and signal_id =%s "
         val = (signal_description, s3, get_time(), user_id, signal_id)
