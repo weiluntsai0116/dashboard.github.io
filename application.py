@@ -314,7 +314,7 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, s3):
                     db_access.insert_signal(user_id, signal_id, signal_description, s3)
                     create = 'Create: Pass!'
                 except Exception as e:
-                    create = u'''Create: Fail! S3 file not exist: {}'''.format(e)
+                    create = u'''Create: Fail! S3 file {} not exist: {}'''.format(s3, e)
     else:
         create = 'Create: 0 times'
     return create
