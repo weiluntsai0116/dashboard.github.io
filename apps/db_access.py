@@ -44,6 +44,19 @@ def get_user_name_by_user_id(user_id):
     return myresult[0][1]
 
 
+def get_all_signal_id():
+    sql = u'''SELECT * FROM signals.signals'''
+    (mydb, mycursor) = build_connection()
+    mycursor.execute(sql)
+    myresult = mycursor.fetchall()
+    # print(myresult)
+    signal_id = [];
+    for row in myresult:
+        signal_id.append(row[0])
+    print(signal_id)
+    return signal_id
+
+
 def is_csv_needed(s3_filename):
     sql = u'''SELECT * FROM signals.signals where s3_filename = \'{}\''''.format(s3_filename)
     (mydb, mycursor) = build_connection()
@@ -56,6 +69,32 @@ def is_csv_needed(s3_filename):
         return True
     return False
 
+
+def first_missing_positive(nums):
+    n = len(nums)
+
+    if 1 not in nums:
+        return 1
+
+    for i in range(n):
+        if nums[i] <= 0 or nums[i] > n:
+            nums[i] = 1
+
+    for i in range(n):
+        a = abs(nums[i])
+        if a == n:
+            nums[0] = - abs(nums[0])
+        else:
+            nums[a] = - abs(nums[a])
+
+    for i in range(1, n):
+        if nums[i] > 0:
+            return i
+
+    if nums[0] > 0:
+        return n
+
+    return n + 1
 
 def is_signal_exist(user_id, signal_id):
     sql = "SELECT * FROM signals.signals where user_id = %s and signal_id = %s"  # todo: remove user_id from here
@@ -73,10 +112,10 @@ def is_signal_exist(user_id, signal_id):
 
 
 def insert_signal(user_id, signal_id, signal_description, s3):
-    sql = "INSERT INTO signals.signals (signal_id, signal_name, signal_description, user_id, s3_filename, datetime) \
-    VALUES (%s, %s, %s, %s, %s, %s)"
+    sql = "INSERT INTO signals.signals (signal_id, signal_description, user_id, s3_filename, datetime) \
+    VALUES (%s, %s, %s, %s, %s)"
     dt_string = get_time()
-    val = (signal_id, "dummy", signal_description, user_id, s3, dt_string)
+    val = (signal_id, signal_description, user_id, s3, dt_string)
     (mydb, mycursor) = build_connection()
     mycursor.execute(sql, val)
     mydb.commit()
@@ -109,7 +148,7 @@ def read_signal(user_id, signal_id):
     mycursor.execute(sql, val)
     myresult = mycursor.fetchall()
     mydb.close()
-    return myresult[0][4]
+    return myresult[0][3]
 
 
 def delete_signal(user_id, signal_id):

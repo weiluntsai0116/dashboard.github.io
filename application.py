@@ -48,7 +48,7 @@ app.layout = html.Div([
         dbc.Col(html.Div(id='username-output'), width=2),
         # dbc.Col(html.Div(["User ID:   ", dcc.Input(id='user_id-state', placeholder="0", type='text', value='')]),
         #         width=2),
-        dbc.Col(html.Div(["Signal ID: ", dcc.Input(id='signal_id-state', placeholder="0", type='text', value='')]),
+        dbc.Col(html.Div(["Signal ID: (Read/Modify/Delete only)", dcc.Input(id='signal_id-state', placeholder="0", type='text', value='')]),
                 width=2),
         # dbc.Col(html.Div(
         #     ["Signal name: ", dcc.Input(id='signal_name-state', placeholder="SignalName", type='text', value='')]),
@@ -242,6 +242,8 @@ def info_disp(delete_n_clicks, modify_n_clicks, create_n_clicks, readit_n_clicks
      State('s3-state', 'value')])
 def create_dash(create_n_clicks, user_id, signal_id, signal_description, s3):
     if create_n_clicks != 0:
+        signal_id_list = db_access.get_all_signal_id()
+        signal_id = db_access.first_missing_positive(signal_id_list)
         if user_id == "" or signal_id == "":
             create = u'''Create: Fail! Lack of Signal ID'''
         elif s3 is None:
@@ -249,7 +251,7 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, s3):
         # todo: check if s3 filename duplicate (will cause problem when deleting it if duplicate)
         elif '.csv' not in s3:
             create = u'''Create: Fail! S3 filename format should be *.csv'''
-        elif not re.search('^\d*$', signal_id):
+        elif type(signal_id) != int:
             create = u'''Create: Fail! Invalid signal ID'''
         elif db_access.is_signal_exist(user_id, signal_id):
             create = u'''Create: Fail! (User ID, Signal ID) is 'duplicate'''
@@ -294,7 +296,6 @@ def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, s3):
      State('signal_id-state', 'value')])
 def read_dash(readit_n_clicks,
               user_id, signal_id):
-
     s3_df, cols = None, None
     if readit_n_clicks != 0:
         if user_id == "" or signal_id == "":
