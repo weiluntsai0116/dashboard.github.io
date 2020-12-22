@@ -304,11 +304,9 @@ def read_dash(readit_n_clicks,
         elif not db_access.is_signal_exist(user_id, signal_id):
             read = u'''Read: Fail! (User ID, Signal ID) is not exist'''
         else:
-            print(user_id)
-            print(signal_id)
-
             s3_filename = db_access.read_signal(user_id, signal_id)
-            print(s3_filename)
+            print("user_id = ", user_id, "signal_id = ", signal_id)
+            print("s3_filename = ", s3_filename)
 
             aws_id = os.environ['AWS_ID']
             aws_secret = os.environ['AWS_SECRET']
@@ -323,8 +321,7 @@ def read_dash(readit_n_clicks,
             # for local test :
             #s3_df = pd.read_csv(s3_filename)
 
-            print(s3_filename)
-            print(s3_df)
+            print("s3_df = ", s3_df)
             cols = list(s3_df.columns)
 
             if len(cols) < 2:
