@@ -49,7 +49,7 @@ app.layout = html.Div([
         dbc.Nav([dbc.NavItem(dbc.NavLink("User Page", id="button_user", n_clicks=0, style={'color': '#0000EE'}))]),
     ], justify="center"),
 
-    html.H3(
+    html.H1(
         children='Dashboard',
         style={
             'textAlign': 'center',
