@@ -61,7 +61,7 @@ app.layout = html.Div([
         dbc.Col(html.Div(id='username-output'), width=2),
         # dbc.Col(html.Div(["User ID:   ", dcc.Input(id='user_id-state', placeholder="0", type='text', value='')]),
         #         width=2),
-        dbc.Col(html.Div(["Signal ID: (Read/Modify/Delete only)",
+        dbc.Col(html.Div(["Signal ID (Read/Modify/Delete only): ",
                           dcc.Input(id='signal_id-state', placeholder="0", type='text', value='')]),
                 width=2),
         # dbc.Col(html.Div(
