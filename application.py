@@ -43,10 +43,10 @@ app.layout = html.Div([
     html.Div(id='error_redirect_page'),
 
     dbc.Row([
-        dbc.Nav([dbc.NavItem(dbc.NavLink("Login Page", id="button_login", n_clicks=0))]),
-        dbc.Nav([dbc.NavItem(dbc.NavLink("Catalog Page", id="button_catalog", n_clicks=0))]),
-        dbc.Nav([dbc.NavItem(dbc.NavLink("Alert Page", id="button_alert", n_clicks=0))]),
-        dbc.Nav([dbc.NavItem(dbc.NavLink("User Page", id="button_user", n_clicks=0))]),
+        dbc.Nav([dbc.NavItem(dbc.NavLink("Login Page", id="button_login", n_clicks=0, style={'color': '#0645AD'}))]),
+        dbc.Nav([dbc.NavItem(dbc.NavLink("Catalog Page", id="button_catalog", n_clicks=0, style={'color': '#0645AD'}))]),
+        dbc.Nav([dbc.NavItem(dbc.NavLink("Alert Page", id="button_alert", n_clicks=0, style={'color': '#0645AD'}))]),
+        dbc.Nav([dbc.NavItem(dbc.NavLink("User Page", id="button_user", n_clicks=0, style={'color': '#0645AD'}))]),
     ], justify="center"),
 
     html.H3(
