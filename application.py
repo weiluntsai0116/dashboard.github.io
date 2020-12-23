@@ -43,10 +43,10 @@ app.layout = html.Div([
     html.Div(id='error_redirect_page'),
 
     dbc.Row([
-        dbc.Nav([dbc.NavItem(dbc.NavLink("Login Page", id="button_login", n_clicks=0, style={'color': '#0000EE'}))]),
-        dbc.Nav([dbc.NavItem(dbc.NavLink("Catalog Page", id="button_catalog", n_clicks=0, style={'color': '#0000EE'}))]),
-        dbc.Nav([dbc.NavItem(dbc.NavLink("Alert Page", id="button_alert", n_clicks=0, style={'color': '#0000EE'}))]),
-        dbc.Nav([dbc.NavItem(dbc.NavLink("User Page", id="button_user", n_clicks=0, style={'color': '#0000EE'}))]),
+        dbc.Col(dbc.Button("Login Page", color="link", id='button_login', n_clicks=0), width=2),
+        dbc.Col(dbc.Button('Catalog Page', color="link", id='button_catalog', n_clicks=0), width=2),
+        dbc.Col(dbc.Button("Alert Page", color="link", id='button_alert', n_clicks=0), width=2),
+        dbc.Col(dbc.Button("User Page", color="link", id='button_user', n_clicks=0), width=2),
     ], justify="center"),
 
     html.H1(
@@ -143,13 +143,6 @@ app.layout = html.Div([
         html.Div(id='dash-output'),
 
     ], justify="center"),
-
-    # dbc.Row([
-    #     dbc.Col(dbc.Button("Login Page", color="info", className="mr-1", id='button_login', n_clicks=0), width=2),
-    #     dbc.Col(dbc.Button('Catalog Page', color="info", className="mr-1", id='button_catalog', n_clicks=0), width=2),
-    #     dbc.Col(dbc.Button("Alert Page", color="info", className="mr-1", id='button_alert', n_clicks=0), width=2),
-    #     dbc.Col(dbc.Button("User Page", color="info", className="mr-1", id='button_user', n_clicks=0), width=2),
-    # ], justify="center"),
 
     # html.Button('Login Page', id='button_login', n_clicks=0),
     # html.Button('Catalog Page', id='button_catalog', n_clicks=0),
