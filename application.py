@@ -138,17 +138,19 @@ app.layout = html.Div([
     ], justify="center"),
 
     dbc.Row([
-        dbc.Col(dbc.Button("User Page", color="info", className="mr-1", id='button_user', n_clicks=0), width=2),
+        dbc.Col(dbc.Button("Login Page", color="info", className="mr-1", id='button_login', n_clicks=0), width=2),
         dbc.Col(dbc.Button('Catalog Page', color="info", className="mr-1", id='button_catalog', n_clicks=0), width=2),
         dbc.Col(dbc.Button("Alert Page", color="info", className="mr-1", id='button_alert', n_clicks=0), width=2),
+        dbc.Col(dbc.Button("User Page", color="info", className="mr-1", id='button_user', n_clicks=0), width=2),
     ], justify="center"),
 
     # html.Button('Login Page', id='button_login', n_clicks=0),
     # html.Button('Catalog Page', id='button_catalog', n_clicks=0),
     # html.Button('Alert Page', id='button_alert', n_clicks=0),
-    html.Div(id='user_redirect'),
+    html.Div(id='login_redirect'),
     html.Div(id='catalog_redirect'),
     html.Div(id='alert_redirect'),
+    html.Div(id='user_redirect'),
 
     # session div for global vars. meant to be hidden.
     html.Div(id='user_id-state', style={'display': 'none'}),
@@ -156,16 +158,12 @@ app.layout = html.Div([
 ])
 
 
-@app.callback(Output('user_redirect', 'children'),
-              Input('button_user', 'n_clicks'),
+@app.callback(Output('login_redirect', 'children'),
+              Input('button_login', 'n_clicks'),
               Input('dashboard_url', 'href'))
-def user_redirect(click, pathname):
-    path_info = pathname.split("?token=")
-    if len(path_info) != 2:
-        return dcc.Location(href=security.login_url, id="any")
+def login_redirect(click, pathname):
     if click != 0:
-        signed_token = path_info[1]
-        return dcc.Location(href=f"{security.user_url}?token={signed_token}", id="any")
+        return dcc.Location(href=security.login_url, id="any")
 
 
 @app.callback(Output('catalog_redirect', 'children'),
@@ -190,6 +188,18 @@ def alert_redirect(click, pathname):
     if click != 0:
         signed_token = path_info[1]
         return dcc.Location(href=f"{security.alert_url}?token={signed_token}", id="any")
+
+
+@app.callback(Output('user_redirect', 'children'),
+              Input('button_user', 'n_clicks'),
+              Input('dashboard_url', 'href'))
+def user_redirect(click, pathname):
+    path_info = pathname.split("?token=")
+    if len(path_info) != 2:
+        return dcc.Location(href=security.login_url, id="any")
+    if click != 0:
+        signed_token = path_info[1]
+        return dcc.Location(href=f"{security.user_url}?token={signed_token}", id="any")
 
 
 @app.callback(Output('error_redirect_page', 'children'),
