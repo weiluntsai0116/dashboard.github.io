@@ -22,6 +22,15 @@ import apps.test_and_upload as app_upload
 import apps.security as security
 import plotly.express as px
 from io import StringIO
+# import logging
+#
+# logging.basicConfig(filename="dashboard_service.log",
+#                     filemode='a',
+#                     format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+#                     datefmt='%H:%M:%S',
+#                     level=logging.DEBUG)
+# logging.getLogger()
+# logging.error("Starting Dashboard Service")
 
 external_stylesheets = [dbc.themes.BOOTSTRAP]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
@@ -129,7 +138,7 @@ app.layout = html.Div([
     ], justify="center"),
 
     dbc.Row([
-        dbc.Col(dbc.Button("Login Page", color="info", className="mr-1", id='button_login', n_clicks=0), width=2),
+        dbc.Col(dbc.Button("User Page", color="info", className="mr-1", id='button_user', n_clicks=0), width=2),
         dbc.Col(dbc.Button('Catalog Page', color="info", className="mr-1", id='button_catalog', n_clicks=0), width=2),
         dbc.Col(dbc.Button("Alert Page", color="info", className="mr-1", id='button_alert', n_clicks=0), width=2),
     ], justify="center"),
@@ -137,7 +146,7 @@ app.layout = html.Div([
     # html.Button('Login Page', id='button_login', n_clicks=0),
     # html.Button('Catalog Page', id='button_catalog', n_clicks=0),
     # html.Button('Alert Page', id='button_alert', n_clicks=0),
-    html.Div(id='login_redirect'),
+    html.Div(id='user_redirect'),
     html.Div(id='catalog_redirect'),
     html.Div(id='alert_redirect'),
 
@@ -147,16 +156,16 @@ app.layout = html.Div([
 ])
 
 
-@app.callback(Output('login_redirect', 'children'),
-              Input('button_login', 'n_clicks'),
+@app.callback(Output('user_redirect', 'children'),
+              Input('button_user', 'n_clicks'),
               Input('dashboard_url', 'href'))
-def login_redirect(click, pathname):
+def user_redirect(click, pathname):
     path_info = pathname.split("?token=")
     if len(path_info) != 2:
         return dcc.Location(href=security.login_url, id="any")
     if click != 0:
         signed_token = path_info[1]
-        return dcc.Location(href=f"{security.login_url}?token={signed_token}", id="any")
+        return dcc.Location(href=f"{security.user_url}?token={signed_token}", id="any")
 
 
 @app.callback(Output('catalog_redirect', 'children'),
@@ -307,10 +316,8 @@ def create_dash(create_n_clicks, user_id, signal_id, signal_description, s3):
                 create = u'''Create: Fail! (User ID, Signal ID) is 'duplicate'''
             else:
                 try:
-                    aws_id = os.environ['AWS_ID']
-                    aws_secret = os.environ['AWS_SECRET']
-                    client = boto3.client('s3', aws_access_key_id=aws_id,
-                                          aws_secret_access_key=aws_secret)
+                    client = boto3.client('s3', aws_access_key_id=security.aws_id,
+                                          aws_secret_access_key=security.aws_secret)
 
                     csv_obj = client.get_object(Bucket='user-signal-data', Key=s3)
                     db_access.insert_signal(user_id, signal_id, signal_description, s3)
@@ -342,10 +349,8 @@ def modify_dash(modify_n_clicks, user_id, signal_id, signal_description, s3):
         else:
             if s3 is not None and s3 != "":
                 try:
-                    aws_id = os.environ['AWS_ID']
-                    aws_secret = os.environ['AWS_SECRET']
-                    client = boto3.client('s3', aws_access_key_id=aws_id,
-                                          aws_secret_access_key=aws_secret)
+                    client = boto3.client('s3', aws_access_key_id=security.aws_id,
+                                          aws_secret_access_key=security.aws_secret)
 
                     csv_obj = client.get_object(Bucket='user-signal-data', Key=s3)
                     db_access.update_signal(user_id, signal_id, signal_description, s3)
@@ -381,10 +386,8 @@ def read_dash(readit_n_clicks,
             print("user_id = ", user_id, "signal_id = ", signal_id)
             print("s3_filename = ", s3_filename)
 
-            aws_id = os.environ['AWS_ID']
-            aws_secret = os.environ['AWS_SECRET']
-            client = boto3.client('s3', aws_access_key_id=aws_id,
-                                  aws_secret_access_key=aws_secret)
+            client = boto3.client('s3', aws_access_key_id=security.aws_id,
+                                  aws_secret_access_key=security.aws_secret)
 
             csv_obj = client.get_object(Bucket='user-signal-data', Key=s3_filename)
             body = csv_obj['Body']
