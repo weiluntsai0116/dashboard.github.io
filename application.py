@@ -142,7 +142,7 @@ app.layout = html.Div([
     html.Div(id='alert_redirect'),
 
     # session div for global vars. meant to be hidden.
-    html.Div(id='user_id-state'),
+    html.Div(id='user_id-state', style={'display': 'none'}),
     # html.Div(id='test_out'),
 ])
 
